@@ -6,11 +6,12 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
 
+import dao.BaseDao;
 import dao.ClientRecordDao;
 import domain.ClientRecord;
 import util.JdbcUtil;
 
-public class ClientRecordDaoImpl implements ClientRecordDao {
+public class ClientRecordDaoImpl extends BaseDao implements ClientRecordDao {
 
 	@Override
 	public int insert(ClientRecord clientRecord) {
@@ -34,41 +35,24 @@ public class ClientRecordDaoImpl implements ClientRecordDao {
 		}
 	}
 
-	/**
-	 * 批量快速插入.
-	 * 
-	 * @param clientRecords
-	 * @return
-	 */
-	public int insertSuperTen(List<ClientRecord> clientRecords) {
-		StringBuffer sb = new StringBuffer(
-				"insert into client_record(client,pal_type,direction,amount,price,op_time,good_type) values");
-		for (int i = 0; i < clientRecords.size(); i++) {
-			sb.append("(?,?,?,?,?,?,?),");
-		}
-		sb.replace(sb.length()-1, sb.length(), ";");
-
+	@Override
+	public void insertBatch(List<ClientRecord> list) {
 		Connection conn = JdbcUtil.open();
-		PreparedStatement ps = null;
 		try {
-			ps = conn.prepareStatement(sb.toString());
-			int index = 0;
-			for (int i = 0; i < clientRecords.size(); i++) {
-				ClientRecord clientRecord = clientRecords.get(i);
-				ps.setObject(index + 1, clientRecord.getClient());
-				ps.setObject(index + 2, clientRecord.getPalType());
-				ps.setObject(index + 3, clientRecord.getDirection());
-				ps.setObject(index + 4, clientRecord.getAmount());
-				ps.setObject(index + 5, clientRecord.getPrice());
-				ps.setObject(index + 6, new Timestamp(clientRecord.getOpTime().getTime()));
-				ps.setObject(index + 7, clientRecord.getGoodType());
-				index = index + 7;
-			}
-			return ps.executeUpdate();
+			insertMoreValue(conn, "insert into client_record(client,pal_type,direction,amount,price,op_time,good_type)",
+					(ps, startIndex, record) -> {
+						ps.setObject(startIndex + 0, record.getClient());
+						ps.setObject(startIndex + 1, record.getPalType());
+						ps.setObject(startIndex + 2, record.getDirection());
+						ps.setObject(startIndex + 3, record.getAmount());
+						ps.setObject(startIndex + 4, record.getPrice());
+						ps.setObject(startIndex + 5, new Timestamp(record.getOpTime().getTime()));
+						ps.setObject(startIndex + 6, record.getGoodType());
+					} , list);
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		} finally {
-			JdbcUtil.close(conn, ps);
+			JdbcUtil.close(conn);
 		}
 	}
 

@@ -35,6 +35,16 @@ public class JdbcUtil {
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
+		
+		conArr = new ArrayList<Connection>(CONN_SIZE);
+		for (int i = 0; i < CONN_SIZE; i++) {
+			try {
+				conArr.add(JdbcConnHandler.getInstance(DriverManager.getConnection(PrivateConfig.url,
+						PrivateConfig.username, PrivateConfig.password)));
+			} catch (SQLException e) {
+				throw new RuntimeException("当前数据库无法连接！");
+			}
+		}
 	}
 
 	/**
@@ -43,22 +53,6 @@ public class JdbcUtil {
 	 * @return
 	 */
 	public static Connection open() {
-		if (conArr == null) {
-			synchronized (JdbcUtil.class) {
-				if (conArr == null) {
-					conArr = new ArrayList<Connection>(CONN_SIZE);
-					for (int i = 0; i < CONN_SIZE; i++) {
-						try {
-							conArr.add(JdbcConnHandler.getInstance(DriverManager.getConnection(PrivateConfig.url,
-									PrivateConfig.username, PrivateConfig.password)));
-						} catch (SQLException e) {
-							throw new RuntimeException("当前数据库无法连接！");
-						}
-					}
-				}
-			}
-		}
-
 		synchronized (conArr) {
 			while (cur<0) {
 				try {

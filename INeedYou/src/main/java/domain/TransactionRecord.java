@@ -1,5 +1,7 @@
 package domain;
 
+import java.util.Date;
+
 public class TransactionRecord {
 
 	/** ID. */
@@ -9,54 +11,68 @@ public class TransactionRecord {
 	/** 交易方向. */
 	private String direction;
 	/** 数量. */
-	private String amount;
+	private double amount;
 	/** 价格. */
-	private String price;
+	private double price;
 	/** 操作时间. */
-	private String opTime;
+	private Date opTime;
 	/** 物品类型. */
 	private String goodType;
+
 	public int getId() {
 		return id;
 	}
+
 	public void setId(int id) {
 		this.id = id;
 	}
+
 	public String getPalType() {
 		return palType;
 	}
+
 	public void setPalType(String palType) {
 		this.palType = palType;
 	}
+
 	public String getDirection() {
 		return direction;
 	}
+
 	public void setDirection(String direction) {
 		this.direction = direction;
 	}
-	public String getAmount() {
+
+	public double getAmount() {
 		return amount;
 	}
-	public void setAmount(String amount) {
+
+	public void setAmount(double amount) {
 		this.amount = amount;
 	}
-	public String getPrice() {
+
+	public double getPrice() {
 		return price;
 	}
-	public void setPrice(String price) {
+
+	public void setPrice(double price) {
 		this.price = price;
 	}
-	public String getOpTime() {
+
+	public Date getOpTime() {
 		return opTime;
 	}
-	public void setOpTime(String opTime) {
+
+	public void setOpTime(Date opTime) {
 		this.opTime = opTime;
 	}
+
 	public String getGoodType() {
 		return goodType;
 	}
+
 	public void setGoodType(String goodType) {
 		this.goodType = goodType;
 	}
-	
+
 }

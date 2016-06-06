@@ -18,12 +18,18 @@ import javax.websocket.WebSocketContainer;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import config.DictUtil;
+import dao.ClientRecordDao;
+import dao.TransactionRecordDao;
 import dao.impl.ClientRecordDaoImpl;
+import dao.impl.TransactionRecordDaoImpl;
 import domain.ClientRecord;
+import domain.TransactionRecord;
 import service.SnatchService;
 
 public class ChbtcSnatchServiceImpl implements SnatchService {
-	private ClientRecordDaoImpl recordDao = new ClientRecordDaoImpl();
+	private ClientRecordDao recordDao = new ClientRecordDaoImpl();
+	private TransactionRecordDao transactionRecordDao = new TransactionRecordDaoImpl();
 
 	@Override
 	public void sync() {
@@ -60,54 +66,68 @@ public class ChbtcSnatchServiceImpl implements SnatchService {
 		public void onMessage(String message) {
 			JSONObject jsonT = new JSONObject(message);
 			String channel = jsonT.getString("channel");
-			int no = jsonT.getInt("no");
 			if ("eth_cny_depth".equals(channel)) {
+				/** 获取买入委托记录. */
 				JSONArray asksArr = jsonT.getJSONArray("asks");
-				JSONArray bids = jsonT.getJSONArray("bids");
+				/** 获取卖出委托记录. */
+				JSONArray bidsArr = jsonT.getJSONArray("bids");
+				/** 获取当前时间. */
 				Date now = new Date();
-				int size= 8;
+
 				ClientRecord record = new ClientRecord();
-				List<ClientRecord> cacheList = new ArrayList<ClientRecord>(size);
+				List<ClientRecord> cacheList = new ArrayList<ClientRecord>(50);
 				for (int i = 0; i < asksArr.length(); i++) {
 					JSONArray item = asksArr.getJSONArray(i);
 					double price = item.getDouble(0);
 					double amount = item.getDouble(1);
-					// System.out.println("卖\t单价：" + price + "\t 数量：" + amount);
-					ClientRecord c = (ClientRecord)record.clone();
+					ClientRecord c = (ClientRecord) record.clone();
 					c.setAmount(amount);
-					c.setDirection("in");
-					c.setGoodType("ytb");
+					c.setDirection(DictUtil.TRADEDIRECT_IN);
+					c.setGoodType(DictUtil.GOODSTYPE_YTB);
 					c.setOpTime(now);
-					c.setPalType("btc");
+					c.setPalType(DictUtil.PALTYPE_BTC);
 					c.setPrice(price);
 					cacheList.add(c);
-					if(cacheList.size() >= size){
-						recordDao.insertSuperTen(cacheList);
-						cacheList.clear();
-					}
 				}
-				
-				/*
-				for (int i = 0; i < bids.length(); i++) {
-					JSONArray item = bids.getJSONArray(i);
+				for (int i = 0; i < bidsArr.length(); i++) {
+					JSONArray item = bidsArr.getJSONArray(i);
 					double price = item.getDouble(0);
 					double amount = item.getDouble(1);
-					System.out.println("买\t单价：" + price + "\t 数量：" + amount);
+					ClientRecord c = (ClientRecord) record.clone();
+					c.setAmount(amount);
+					c.setDirection(DictUtil.TRADEDIRECT_OUT);
+					c.setGoodType(DictUtil.GOODSTYPE_YTB);
+					c.setOpTime(now);
+					c.setPalType(DictUtil.PALTYPE_BTC);
+					c.setPrice(price);
+					cacheList.add(c);
 				}
-				*/
+				recordDao.insertBatch(cacheList);
+				cacheList.clear();
+				cacheList = null;
 			} else if ("eth_cny_lasttrades".equals(channel)) {
-				/*
 				JSONArray dataArr = jsonT.getJSONArray("data");
+				List<TransactionRecord> cacheList = new ArrayList<TransactionRecord>(50);
 				for (int i = 0; i < dataArr.length(); i++) {
 					JSONObject item = dataArr.getJSONObject(i);
 					double amount = item.getDouble("amount");
-					int date = item.getInt("date");
 					double price = item.getDouble("price");
 					String trade_type = item.getString("trade_type");
 					String type = item.getString("type");
-					System.out.println("数量：" + amount + "\t 价格：" + price + "\t 交易类型：" + trade_type + "\t 类型：" + type);
+					Date now = new Date();
+
+					TransactionRecord record = new TransactionRecord();
+					record.setAmount(amount);
+					record.setDirection(type);
+					record.setGoodType(DictUtil.GOODSTYPE_YTB);
+					record.setOpTime(now);
+					record.setPalType(DictUtil.PALTYPE_BTC);
+					record.setPrice(price);
+					cacheList.add(record);
 				}
-				*/
+				transactionRecordDao.insertBatch(cacheList);
+				cacheList.clear();
+				cacheList = null;
 			} else {
 				System.out.println(message);
 			}

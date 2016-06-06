@@ -10,5 +10,7 @@ public class PrivateConfig {
   public static String url = "jdbc:mysql://localhost:3306/gupiao";
   public static String username = "root";
   public static String password = "123456";
+  
+  public static int BASEDAO_CACHE_SIZE =10;
 
 }
