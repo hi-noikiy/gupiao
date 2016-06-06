@@ -1,0 +1,83 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>My JSP 'index.jsp' starting page</title>
+    <meta http-equiv="content-type" content="html/text;charset=utf-8">
+	<meta http-equiv="pragma" content="no-cache">
+	<meta http-equiv="cache-control" content="no-cache">
+	<meta http-equiv="expires" content="0">    
+	<meta http-equiv="keywords" content="keyword1,keyword2,keyword3">
+	<meta http-equiv="description" content="This is my page">
+	<script type="text/javascript" src="jquery.min.js"></script>
+	<!--
+	<link rel="stylesheet" type="text/css" href="styles.css">
+	-->
+  </head>
+  <script type="text/javascript">
+  		var key = "d50fedf9-c216-4c21-827c-504dfb867748";
+		var secret = "c1f263bc-b994-4933-be70-19ec617a6d29";
+		function getAccountInfo(){
+			var params = "accesskey=" + key + "&secretkey=" + secret;
+			var url = "/INeedYou/api/getAccountInfo?" + params;
+			$.ajax({
+				type: "POST",
+				url: url,
+				dataType: "JSON",
+				success: function(result){
+					if(result.code){
+						alert("code=" + result.code + ";message=" + result.message);
+					}else{
+						var base = result.result.base;
+						var balance = result.result.balance;
+						var frozen = result.result.frozen;
+
+						$("#username").text(base.username);
+
+						$("#b_cny").text(decodeURI(balance.CNY.symbol,"utf-8") + balance.CNY.amount);
+						$("#b_btc").text(decodeURI(balance.BTC.symbol,"utf-8") + balance.BTC.amount);
+						$("#b_ltc").text(decodeURI(balance.LTC.symbol,"utf-8") + balance.LTC.amount);
+						
+						$("#f_cny").text(decodeURI(frozen.CNY.symbol,"utf-8") + frozen.CNY.amount);
+						$("#f_btc").text(decodeURI(frozen.BTC.symbol,"utf-8") + frozen.BTC.amount);
+						$("#f_ltc").text(decodeURI(frozen.LTC.symbol,"utf-8") + frozen.LTC.amount);
+					}
+				},
+				error: function(XMLHttpRequest, textStatus, errorThrown){
+					alert("内部错误"+textStatus+errorThrown);
+				}
+			});	
+		}
+  
+  </script>
+  <body>
+    <h3>API交易测试getAccountInfo方法</h3>
+    <hr/>
+	<input type="button" value="点击获取账户信息" onclick="getAccountInfo()"/>
+	<table style="width:60%">
+		<tr>
+			<td style="border:1px solid #000;width:10%;">用户名</td>
+			<td style="border:1px solid #000;width:10%;" id="username">&nbsp;</td>
+			<td style="border:1px solid #000;width:10%;">&nbsp;</td>
+			<td style="border:1px solid #000;width:10%;">&nbsp;</td>
+			<td style="border:1px solid #000;width:10%;">&nbsp;</td>
+			<td style="border:1px solid #000;width:10%;">&nbsp;</td>
+		</tr>
+		<tr>
+			<td style="border:1px solid #000">可用金额</td>
+			<td style="border:1px solid #000" id="b_cny">&nbsp;</td>
+			<td style="border:1px solid #000">可用BTC</td>
+			<td style="border:1px solid #000" id="b_btc">&nbsp;</td>
+			<td style="border:1px solid #000">可用LTC</td>
+			<td style="border:1px solid #000" id="b_ltc">&nbsp;</td>
+		</tr>
+		<tr>
+			<td style="border:1px solid #000">冻结金额</td>
+			<td style="border:1px solid #000" id="f_cny">&nbsp;</td>
+			<td style="border:1px solid #000">冻结BTC</td>
+			<td style="border:1px solid #000" id="f_btc">&nbsp;</td>
+			<td style="border:1px solid #000">冻结LTC</td>
+			<td style="border:1px solid #000" id="f_ltc">&nbsp;</td>
+		</tr>
+	</table>
+  </body>
+</html>

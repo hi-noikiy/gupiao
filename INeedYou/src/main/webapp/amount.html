@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<meta http-equiv="content-type" content="html/text;charset=utf-8">
+<script type="text/javascript" src="js/jquery.min.js"></script>
+
+</head>
+<body>
+	<div id="sellChart" style="width: 750px; height: 400px;display:inline-block;"></div>
+	<div id="buyChart" style="width: 750px; height: 400px;display:inline-block;"></div>
+	<div id="totalChart" style="width: 1500px; height: 400px;display:inline-block;"></div>
+	<div id="priceChart" style="width: 1500px; height: 400px;display:inline-block;"></div>
+	
+	<script type="text/javascript" src="js/echarts.min.js"></script>
+	<script type="text/javascript">
+	$(function(){
+		// 基于准备好的dom，初始化echarts实例
+		var sellChart = echarts.init(document.getElementById('sellChart'));
+		var buyChart = echarts.init(document.getElementById('buyChart'));
+		var totalChart = echarts.init(document.getElementById('totalChart'));
+
+		var amountData = [];
+		var priceData = [];
+		var xData = [];
+		
+		// 指定图表的配置项和数据
+		var option = {
+			title : {
+				text : '委托出售'
+			},
+			legend : {
+				data : [ '出售量']
+			},
+			xAxis : [{
+				type : 'category',
+				data : [],
+				splitLine: {
+		            show: false
+		        }
+			}],
+			yAxis : {
+				splitLine: {
+		            show: false
+		        }
+			},
+			series : [{
+				name : '出售量',
+				type : 'bar',
+				data : []
+			}]
+		};
+		
+		var buyOption = {
+				title : {
+					text : '委托购买'
+				},
+				legend : {
+					data : [ '购买量']
+				},
+				xAxis : [{
+					type : 'category',
+    				data : [],
+    				splitLine: {
+    		            show: false
+    		        }
+    			}],
+				yAxis : {
+					type: 'value',
+					data:[],
+					splitLine: {
+			            show: false
+			        }
+				},
+				series : [{
+					name : '购买量',
+					type : 'bar',
+					data : []
+				}]
+			};
+		
+		var totalOption = {
+				title : {
+					text : '交易价格走向图'
+				},
+				tooltip : {
+					trigger:'axis'
+				},
+				legend : {
+					data : [ '价格','数量']
+				},
+				xAxis : [{
+					boundaryGap: true,
+					splitLine:{show:false},
+					type : 'time'
+    			}],
+				yAxis : [{
+					precision: 2, 
+					scale: true,
+					name : "价格",
+					type : 'value',
+					data : []
+				},{
+					precision: 0, 
+					scale: true,
+					name : "数量",
+					type : 'value',
+					data : []
+				}],
+				series : [{
+					z:1,
+					name : '价格',
+					type : 'line',
+					data : priceData
+				},{
+					z:0,
+					name : '数量',
+					type : 'line',
+					data : amountData,
+					yAxisIndex:1,
+					barMaxWidth:100
+				}]
+			};
+		
+		sellChart.setOption(option);
+    	buyChart.setOption(buyOption);
+		totalChart.setOption(totalOption);
+		
+		var websocket = new WebSocket("wss://tcp.chbtc.com/websocket"); 
+        websocket.onopen = function(evt) { 
+        	websocket.send("{'event':'addChannel','channel':'eth_cny_depth'}");
+        	websocket.send("{'event':'addChannel','channel':'eth_cny_lasttrades'}");
+        }; 
+        websocket.onclose = function(evt) { 
+        }; 
+        websocket.onmessage = function(evt) { 
+        	if(evt.data != undefined){
+        		evt = eval('('+evt.data+')');
+        	}
+        	if(evt.channel == "eth_cny_depth"){
+	        	var asksArr = evt.asks;
+	        	var bidssArr = evt.bids;
+				var bidsData = [];
+				var bidsX=[];
+				var sellData=[];
+				var sellX=[];
+	        	for(var i=0; i<asksArr.length; i++){
+	        		bidsData[i]=asksArr[i][1];
+	        		bidsX[i]=asksArr[i][0];
+	        	}
+	        	sellChart.setOption({
+	        		xAxis:{data:bidsX},
+	        		series:[{data:bidsData}]
+	        	});
+	        	
+	        	for(var i=0; i<bidssArr.length; i++){
+	        		sellData[i]=bidssArr[i][1];
+	        		sellX[i]=bidssArr[i][0];
+	        	}
+	        	buyChart.setOption({
+	        		xAxis:{data:sellX},
+	        		series:[{data:sellData}]
+	        	});
+        	} else if(evt.channel == "eth_cny_lasttrades"){
+        		var data = evt.data;
+        		var length = 100;
+        		var amountTaxVal= 0;
+        		var priceTaxVal= 0;
+        		
+	        	// 委托记录显示
+	        	for(var i=0; i<data.length; i++){
+	        		var ti = new Date();
+	        		var axisData = (ti).toLocaleTimeString().replace(/^\D*/,'');
+	        		if(priceTaxVal<ti,data[i].price){
+							        			
+	        		}
+	        	}
+	        	amountData.push([ti,data[i].amount]);
+        		priceData.push([ti,data[i].price]);
+        		if(priceData.length > length){
+        			priceData.shift();
+        		}
+        		if(amountData.length > length){
+        			amountData.shift();
+        		}
+        	}
+        }; 
+        websocket.onerror = function(evt) { 
+        };
+        
+        /** 定时刷新数轴.*/
+    	var a = function(){
+    		totalChart.setOption({series:[{data:priceData},{data:amountData}]});
+		}
+		setInterval(a, 1000);
+	});
+	</script>
+</body>
+</html>
