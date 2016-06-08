@@ -9,6 +9,7 @@ import java.util.List;
 import javax.websocket.ClientEndpoint;
 import javax.websocket.ContainerProvider;
 import javax.websocket.DeploymentException;
+import javax.websocket.OnClose;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
@@ -28,6 +29,7 @@ import domain.TransactionRecord;
 import service.SnatchService;
 
 public class ChbtcSnatchServiceImpl implements SnatchService {
+	
 	private ClientRecordDao recordDao = new ClientRecordDaoImpl();
 	private TransactionRecordDao transactionRecordDao = new TransactionRecordDaoImpl();
 
@@ -130,6 +132,17 @@ public class ChbtcSnatchServiceImpl implements SnatchService {
 				cacheList = null;
 			} else {
 				System.out.println(message);
+			}
+		}
+		
+		@OnClose
+		public void onClose(){
+			System.out.println("交易日志记录关闭!");
+			try {
+				Thread.currentThread().wait(1000);
+				sync();
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
 			}
 		}
 
