@@ -58,3 +58,11 @@ create table dictionary(
 	name varchar(50),
 	isuse boolean
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
+-- 初始化字典数据
+insert into dictionary(code,name,isuse) values('ytb','以太币',true);
+insert into dictionary(code,name,isuse) values('btb','比特币',true);
+insert into dictionary(code,name,isuse) values('in','买入',true);
+insert into dictionary(code,name,isuse) values('out','卖出',true);
+insert into dictionary(code,name,isuse) values('btc','比特币中国',true);

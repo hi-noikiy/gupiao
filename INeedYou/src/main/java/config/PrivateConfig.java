@@ -7,7 +7,7 @@ public class PrivateConfig {
   public static String SECRETKEY = "c1f263bc-b994-4933-be70-19ec617a6d29";
   
   public static String driverClass = "com.mysql.jdbc.Driver";
-  public static String url = "jdbc:mysql://localhost:3306/gupiao";
+  public static String url = "jdbc:mysql://localhost:3306/gupiao?characterEncoding=utf8&useSSL=true";
   public static String username = "root";
   public static String password = "123456";
   

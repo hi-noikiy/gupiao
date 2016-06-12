@@ -14,6 +14,8 @@ import listener.ChartListener;
 @ServerEndpoint(value = "/chart")
 public class ChartSerlvet {
 
+	private Session session;
+
 	@OnMessage
 	public void onMessage(String message, Session session) {
 		JSONObject mess = new JSONObject(message);
@@ -39,17 +41,20 @@ public class ChartSerlvet {
 
 	@OnClose
 	public void onClose() {
+		ChartListener.chartThread.unregsiter(session);
 		System.out.println("关闭websocket");
 	}
 
 	@OnOpen
 	public void onOpen(Session session) {
+		this.session = session;
 		System.out.println("开启websocket");
 	}
 
 	@OnError
 	public void onError(Throwable e) {
 		e.printStackTrace();
+		ChartListener.chartThread.unregsiter(session);
 		System.out.println("错误websocket");
 	}
 

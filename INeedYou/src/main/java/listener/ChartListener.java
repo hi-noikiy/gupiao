@@ -13,6 +13,7 @@ import java.util.TimerTask;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
+import javax.servlet.annotation.WebListener;
 import javax.websocket.Session;
 
 import org.json.JSONObject;
@@ -27,6 +28,7 @@ import service.impl.TransactionServiceImpl;
  * Application Lifecycle Listener implementation class BuyRecordListener
  *
  */
+@WebListener
 public class ChartListener implements ServletContextListener {
 
 	public static ChartThread chartThread = new ChartThread();
@@ -71,6 +73,13 @@ public class ChartListener implements ServletContextListener {
 			list.add(register);
 		}
 
+		public void unregsiter(Session register) {
+			Set<Entry<String, List<Session>>> entrySet = map.entrySet();
+			for (Entry<String, List<Session>> entry : entrySet) {
+				entry.getValue().remove(register);
+			}
+		}
+
 		@Override
 		public void run() {
 			/**
@@ -95,35 +104,40 @@ public class ChartListener implements ServletContextListener {
 
 			String[] mess = new String[] { detailStr, avgpriceStr, maxPriceStr, volumeStr, amountSumStr };
 
-			Set<Entry<String, List<Session>>> entrySet = map.entrySet();
-			for (Entry<String, List<Session>> entry : entrySet) {
-				String key = entry.getKey();
-				List<Session> list = entry.getValue();
-				for (Session r : list) {
-					try {
-						switch (key) {
-						case "detail":
-							r.getBasicRemote().sendText(mess[0]);
-							break;
-						case "avgprice":
-							// Double priceRecord =
-							// service.getAvgPriceRecord(now);
-							r.getBasicRemote().sendText(mess[1]);
-							break;
-						case "maxprice":
-							r.getBasicRemote().sendText(mess[2]);
-							break;
-						case "volume":
-							r.getBasicRemote().sendText(mess[3]);
-							break;
-						case "amountsum":
-							r.getBasicRemote().sendText(mess[4]);
-							break;
+			try {
+				Set<Entry<String, List<Session>>> entrySet = map.entrySet();
+				for (Entry<String, List<Session>> entry : entrySet) {
+					String key = entry.getKey();
+					List<Session> list = entry.getValue();
+					for (Session r : list) {
+						try {
+							if (r != null && r.isOpen()) {
+								switch (key) {
+								case "detail":
+									r.getBasicRemote().sendText(mess[0]);
+									break;
+								case "avgprice":
+									r.getBasicRemote().sendText(mess[1]);
+									break;
+								case "maxprice":	
+									r.getBasicRemote().sendText(mess[2]);
+									break;
+								case "volume":
+									r.getBasicRemote().sendText(mess[3]);
+									break;
+								case "amountsum":
+									r.getBasicRemote().sendText(mess[4]);
+									break;
+								}
+							}
+							r.getBasicRemote().flushBatch();
+						} catch (Exception e) {
+							e.printStackTrace();
 						}
-					} catch (IOException e) {
-						e.printStackTrace();
 					}
 				}
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
 	}

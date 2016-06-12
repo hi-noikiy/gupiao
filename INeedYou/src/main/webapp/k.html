@@ -149,6 +149,24 @@
 			}
 			return result;
 		}
+		
+		var ws = new WebSocket("ws://localhost:8080/INeedYou/chart");
+		ws.onopen = function(){
+			ws.send("{type:'detail'}");
+		}
+		ws.onmeesage = function(env){
+			console.log(env);
+		}
+		ws.onclose = function(){
+			console.log("close");
+		}
+		ws.onerror = function(e){
+			console.log(e);
+		}
+		
+		
+		
+		
 	</script>
 </body>
 </html>

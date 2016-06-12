@@ -29,7 +29,7 @@ import domain.TransactionRecord;
 import service.SnatchService;
 
 public class ChbtcSnatchServiceImpl implements SnatchService {
-	
+
 	private ClientRecordDao recordDao = new ClientRecordDaoImpl();
 	private TransactionRecordDao transactionRecordDao = new TransactionRecordDaoImpl();
 
@@ -134,16 +134,11 @@ public class ChbtcSnatchServiceImpl implements SnatchService {
 				System.out.println(message);
 			}
 		}
-		
+
 		@OnClose
-		public void onClose(){
+		public void onClose() {
 			System.out.println("交易日志记录关闭!");
-			try {
-				Thread.currentThread().wait(1000);
-				sync();
-			} catch (InterruptedException e) {
-				throw new RuntimeException(e);
-			}
+			sync();
 		}
 
 		@OnError
