@@ -1,4 +1,4 @@
-package repository;
+package push.repository;
 
 import java.util.ArrayList;
 import java.util.Collection;

@@ -1,4 +1,4 @@
-package repository;
+package push.repository;
 
 import java.lang.reflect.Array;
 import java.util.concurrent.TimeUnit;

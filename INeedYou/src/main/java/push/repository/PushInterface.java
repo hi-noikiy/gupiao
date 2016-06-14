@@ -1,4 +1,4 @@
-package repository;
+package push.repository;
 
 public interface PushInterface<T> {
 
