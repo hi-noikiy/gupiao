@@ -1,6 +1,5 @@
 package listener;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -86,9 +85,12 @@ public class ChartListener implements ServletContextListener {
 			 * 获取当前时间，并查询当前时间的记录值，通过推送的方式推送出去.
 			 */
 			Date now = new Date();
+			now.setTime(now.getTime() - 1000);
 
 			List<TransactionRecord> detail = service.getDetail(now);
 			String detailStr = JSONArray.toJSONString(detail);
+
+			
 
 			Double priceRecord = service.getAvgPriceRecord(now);
 			String avgpriceStr = "{date:" + now.getTime() + ",value:" + priceRecord + "}";
@@ -119,7 +121,7 @@ public class ChartListener implements ServletContextListener {
 								case "avgprice":
 									r.getBasicRemote().sendText(mess[1]);
 									break;
-								case "maxprice":	
+								case "maxprice":
 									r.getBasicRemote().sendText(mess[2]);
 									break;
 								case "volume":

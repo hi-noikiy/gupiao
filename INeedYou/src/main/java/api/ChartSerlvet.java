@@ -9,7 +9,7 @@ import javax.websocket.server.ServerEndpoint;
 
 import org.json.JSONObject;
 
-import listener.ChartListener;
+import push.PushRegisterCenter;
 
 @ServerEndpoint(value = "/chart")
 public class ChartSerlvet {
@@ -22,26 +22,14 @@ public class ChartSerlvet {
 		String type = mess.getString("type");
 		switch (type) {
 		case "detail":
-			ChartListener.chartThread.regsiter("detail", session);
-			break;
-		case "avgprice":
-			ChartListener.chartThread.regsiter("avgprice", session);
-			break;
-		case "maxprice":
-			ChartListener.chartThread.regsiter("maxprice", session);
-			break;
-		case "volume":
-			ChartListener.chartThread.regsiter("volume", session);
-			break;
-		case "amountsum":
-			ChartListener.chartThread.regsiter("amountsum", session);
+			PushRegisterCenter.getInstance().register("detail", session);
 			break;
 		}
 	}
 
 	@OnClose
 	public void onClose() {
-		ChartListener.chartThread.unregsiter(session);
+		PushRegisterCenter.getInstance().unregsiter(session);
 		System.out.println("关闭websocket");
 	}
 
@@ -54,7 +42,7 @@ public class ChartSerlvet {
 	@OnError
 	public void onError(Throwable e) {
 		e.printStackTrace();
-		ChartListener.chartThread.unregsiter(session);
+		PushRegisterCenter.getInstance().unregsiter(session);
 		System.out.println("错误websocket");
 	}
 

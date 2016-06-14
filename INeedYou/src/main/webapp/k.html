@@ -154,7 +154,7 @@
 		ws.onopen = function(){
 			ws.send("{type:'detail'}");
 		}
-		ws.onmeesage = function(env){
+		ws.onmessage = function(env){
 			console.log(env);
 		}
 		ws.onclose = function(){
@@ -163,9 +163,6 @@
 		ws.onerror = function(e){
 			console.log(e);
 		}
-		
-		
-		
 		
 	</script>
 </body>

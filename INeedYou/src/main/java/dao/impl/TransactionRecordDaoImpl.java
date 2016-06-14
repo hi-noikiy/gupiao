@@ -65,7 +65,7 @@ public class TransactionRecordDaoImpl extends BaseDao implements TransactionReco
 		ResultSet reset = null;
 		try {
 			ps = conn.prepareStatement(
-					"select id, direction,amount,price,op_time,pal_type,good_type from transaction_record where op_time=?");
+					"select id, direction,amount,price,op_time,pal_type,good_type from transaction_record where date_format(op_time,'%Y-%m-%d %H:%i:%s')=date_format(?,'%Y-%m-%d %H:%i:%s')");
 			ps.setObject(1, new Timestamp(date.getTime()));
 			reset = ps.executeQuery();
 			while (reset.next()) {

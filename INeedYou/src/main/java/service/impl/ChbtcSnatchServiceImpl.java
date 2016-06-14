@@ -5,6 +5,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
 
 import javax.websocket.ClientEndpoint;
 import javax.websocket.ContainerProvider;
@@ -26,12 +27,15 @@ import dao.impl.ClientRecordDaoImpl;
 import dao.impl.TransactionRecordDaoImpl;
 import domain.ClientRecord;
 import domain.TransactionRecord;
+import push.PushRegisterCenter;
 import service.SnatchService;
+import util.CacheUtil;
 
 public class ChbtcSnatchServiceImpl implements SnatchService {
 
 	private ClientRecordDao recordDao = new ClientRecordDaoImpl();
 	private TransactionRecordDao transactionRecordDao = new TransactionRecordDaoImpl();
+	private ArrayBlockingQueue<TransactionRecord> array = CacheUtil.getQueue(TransactionRecord.class);
 
 	@Override
 	public void sync() {
@@ -126,8 +130,15 @@ public class ChbtcSnatchServiceImpl implements SnatchService {
 					record.setPalType(DictUtil.PALTYPE_BTC);
 					record.setPrice(price);
 					cacheList.add(record);
+					try {
+						array.put(record);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+						throw new RuntimeException(e);
+					}
 				}
 				transactionRecordDao.insertBatch(cacheList);
+				PushRegisterCenter.getInstance().pushTR(cacheList);
 				cacheList.clear();
 				cacheList = null;
 			} else {
