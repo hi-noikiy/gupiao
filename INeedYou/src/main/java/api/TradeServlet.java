@@ -39,7 +39,7 @@ public class TradeServlet extends HttpServlet {
 		response.setContentType("text/html"); 
 		String url = "https://trade.chbtc.com/api/";
 		String params = "";
-		SECRET_KEY = EncryDigestUtil.digest(SECRET_KEY);
+		SECRET_KEY = EncryDigestUtil.digest(PrivateConfig.SECRETKEY);
 		if("order".equals(method)){
 			String price = request.getParameter("price");
 			String amount = request.getParameter("amount");

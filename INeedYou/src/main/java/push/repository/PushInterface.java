@@ -2,6 +2,6 @@ package push.repository;
 
 public interface PushInterface<T> {
 
-	public void push(T[] list);
+	public void push(T obj);
 
 }

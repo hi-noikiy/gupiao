@@ -5,7 +5,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
 
 import javax.websocket.ClientEndpoint;
 import javax.websocket.ContainerProvider;
@@ -29,13 +28,12 @@ import domain.ClientRecord;
 import domain.TransactionRecord;
 import push.PushRegisterCenter;
 import service.SnatchService;
-import util.CacheUtil;
 
 public class ChbtcSnatchServiceImpl implements SnatchService {
 
 	private ClientRecordDao recordDao = new ClientRecordDaoImpl();
 	private TransactionRecordDao transactionRecordDao = new TransactionRecordDaoImpl();
-	private ArrayBlockingQueue<TransactionRecord> array = CacheUtil.getQueue(TransactionRecord.class);
+	private PushRegisterCenter center = PushRegisterCenter.getInstance();
 
 	@Override
 	public void sync() {
@@ -43,13 +41,9 @@ public class ChbtcSnatchServiceImpl implements SnatchService {
 		 * 实时同步Cnbtc网站的交易数据.
 		 */
 		WebSocketContainer container = ContainerProvider.getWebSocketContainer();
-		String uri = "wss://tcp.chbtc.com/websocket";
+		String uri = "wss://kline.chbtc.com/websocket";
 		try {
-			Session session = container.connectToServer(new MyClient(), URI.create(uri));
-			// 发送买卖委托单监听
-			session.getBasicRemote().sendText("{'event':'addChannel','channel':'eth_cny_depth'}");
-			// 发送成交记录
-			session.getBasicRemote().sendText("{'event':'addChannel','channel':'eth_cny_lasttrades'}");
+			container.connectToServer(new MyClient(), URI.create(uri));
 		} catch (DeploymentException e) {
 			throw new Error(e);
 		} catch (IOException e) {
@@ -64,8 +58,20 @@ public class ChbtcSnatchServiceImpl implements SnatchService {
 		}
 
 		@OnOpen
-		public void onOpen(Session session) {
+		public void onOpen(Session session) throws IOException {
 			System.out.println("交易日志记录开启!");
+			/*
+			// 注册请求分析
+			{"event":"addChannel","channel":"chbtcethbtc_kline_15min"}
+			{'event':'addChannel','channel':'eth_btc_lasttrades'}
+			{'event':'addChannel','channel':'eth_btc_depth'}
+			{"event":"addChannel","channel":"chbtcethcny_kline_15min"}
+			{'event':'addChannel','channel':'eth_cny_lasttrades'}
+			*/
+			// 发送买卖委托单监听
+			// session.getBasicRemote().sendText("{'event':'addChannel','channel':'eth_cny_depth'}");
+			// 发送成交记录
+			session.getBasicRemote().sendText("{'event':'addChannel','channel':'eth_cny_lasttrades'}");
 		}
 
 		@OnMessage
@@ -130,12 +136,7 @@ public class ChbtcSnatchServiceImpl implements SnatchService {
 					record.setPalType(DictUtil.PALTYPE_BTC);
 					record.setPrice(price);
 					cacheList.add(record);
-					try {
-						array.put(record);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-						throw new RuntimeException(e);
-					}
+					center.pushTR(record);
 				}
 				transactionRecordDao.insertBatch(cacheList);
 				PushRegisterCenter.getInstance().pushTR(cacheList);
@@ -154,6 +155,7 @@ public class ChbtcSnatchServiceImpl implements SnatchService {
 
 		@OnError
 		public void onError(Throwable t) {
+			System.out.println("交易日志记录关闭!");
 			t.printStackTrace();
 		}
 	}

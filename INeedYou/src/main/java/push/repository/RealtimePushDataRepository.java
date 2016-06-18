@@ -5,45 +5,35 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 实时数据推送.
- * 
- * @author huangming
  *
  * @param <T>
+ * @author huangming
  */
 public class RealtimePushDataRepository<T> extends PushDataRepository<T> {
 
-	private Class<T> clazz;
+    private Thread t = null;
 
-	public RealtimePushDataRepository(Class<T> clazz) {
-		this.clazz = clazz;
-	}
+    @Override
+    public void start() {
+        t = new Thread(new PThread());
+        t.start();
+    }
 
-	@Override
-	public void start() {
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				while (true) {
-					// Get Queue Object
-					try {
-						queue.poll(3000, TimeUnit.MILLISECONDS);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-						continue;
-					}
-
-					T[] arr = (T[]) Array.newInstance(clazz, queue.size());
-					arr = queue.toArray(arr);
-					queue.clear();
-
-					// Slow Push
-					for (PushInterface<T> inf : list) {
-						inf.push(arr);
-					}
-
-				}
-			}
-		}).start();
-	}
-
+    private class PThread implements Runnable {
+        @Override
+        public void run() {
+            while (true) {
+                // Get Queue Object
+                try {
+                    T obj = queue.take();
+                    // Slow Push
+                    for (PushInterface<T> inf : list) {
+                        inf.push(obj);
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 }
