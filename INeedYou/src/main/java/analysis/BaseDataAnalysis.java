@@ -20,8 +20,8 @@ public abstract class BaseDataAnalysis {
     private PushRegisterCenter center = PushRegisterCenter.getInstance();
     private TRPushInterface trpush = new TRPushInterface();
 
-    protected BaseDataAnalysis() {
-        center.register(trpush);
+    protected BaseDataAnalysis(String type) {
+        center.register(type, trpush);
     }
 
     /**

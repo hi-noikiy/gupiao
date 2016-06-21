@@ -7,6 +7,7 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
+import config.DictUtil;
 import domain.TransactionRecord;
 import org.json.JSONObject;
 
@@ -27,7 +28,7 @@ public class ChartSerlvet {
         String type = mess.getString("type");
         switch (type) {
             case "detail":
-                PushRegisterCenter.getInstance().register(trpush);
+                PushRegisterCenter.getInstance().register(DictUtil.GOODSTYPE_YTB, trpush);
                 break;
         }
     }

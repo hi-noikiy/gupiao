@@ -3,9 +3,8 @@ package analysis.impl;
 import analysis.BaseDataAnalysis;
 import domain.TransactionRecord;
 
-import java.math.BigDecimal;
+import java.awt.*;
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
 
 /**
  * 成交量数据分析器。
@@ -14,23 +13,42 @@ import java.util.concurrent.ArrayBlockingQueue;
  * 在成交量急剧上升时，同时价格在10秒内猛涨。 预测价格上升。按照10秒前后价格推算。
  * 在成交量急剧上升时，同时价格在5秒内猛跌。 预测价格下降。 按照5秒前后价格推算。
  * <p>
+ * 统计指标：
+ * 每秒：
+ * 均价、最高价、最低价、价差、正差合计、负差合计、资金成交值、成交数量
+ * 每15秒：
+ * <p>
+ * 时间算法架构.
+ * 采用一个缓存区域，共享至多个时间频率的算法中.
+ * 秒<分
+ * <p>
+ * 1、保存数据对象
+ * 2、清洗数据，获取需要的指标数据.
+ * <p>
+ * <p>
+ * <p>
+ * <p>
  * Created by huangming on 2016/6/17.
  */
 public class VolumeDataAnalysis extends BaseDataAnalysis {
 
-    private final static int MAX_SIZE = 15;
+    /**
+     * 缓存20秒的数据作为分析依据,
+     */
+    private final static int MAX_SIZE = 20;
     //private Queue<Queue<Double>> volumnTimeArr = new ArrayBlockingQueue(MAX_SIZE);
     private LinkedList<Double> volumnTimeArr[] = new LinkedList[MAX_SIZE];
     private double maxPriceTimeArr[] = new double[MAX_SIZE];
+    private double minPriceTimeArr[] = new double[MAX_SIZE];
+    private double timesTimeArr[] = new double[MAX_SIZE];
     private int lastupdatetime = 0;
-    private int now_size = 0;
     private int start_index = MAX_SIZE - 1;
     private int end_index = 0;
     private LinkedHashMap<Long, Double> timeAndPrice = new LinkedHashMap<>();
     private LinkedHashMap<Long, LinkedList<Thread>> threadRegister = new LinkedHashMap<>();
-    private final static int analyTimeUnit = 1000; // 1秒;
 
-    public VolumeDataAnalysis() {
+    public VolumeDataAnalysis(String type) {
+        super(type);
         analysis();
     }
 
@@ -79,9 +97,12 @@ public class VolumeDataAnalysis extends BaseDataAnalysis {
                     volumnTimeArr[start_index].clear();
                 }
                 maxPriceTimeArr[start_index] = 0;
+                minPriceTimeArr[start_index] = 0;
+                timesTimeArr[start_index] = 0;
             }
         }
 
+        timesTimeArr[start_index] += t.getAmount();
         if (volumnTimeArr[start_index] == null) {
             volumnTimeArr[start_index] = new LinkedList();
         }
@@ -89,6 +110,13 @@ public class VolumeDataAnalysis extends BaseDataAnalysis {
         if (maxPriceTimeArr[start_index] < t.getPrice()) {
             maxPriceTimeArr[start_index] = t.getPrice();
         }
+        if (minPriceTimeArr[start_index] > t.getPrice()) {
+            minPriceTimeArr[start_index] = t.getPrice();
+        }
+        if (t.getPrice() > 60.00) {
+            Toolkit.getDefaultToolkit().beep();
+        }
+
     }
 
     public void analysis() {
@@ -110,7 +138,6 @@ public class VolumeDataAnalysis extends BaseDataAnalysis {
             int start_index = VolumeDataAnalysis.this.start_index;
             int end_index = VolumeDataAnalysis.this.end_index;
 
-
             // 最大成交量差值..
             double maxC = 0;
             // 成交量合计.
@@ -130,9 +157,9 @@ public class VolumeDataAnalysis extends BaseDataAnalysis {
             int sumTimesRL = 0;
 
             // 价格正负差值合计.
-            double priceSumRL = 0;
+            double minPriceSumRL = 0;
             // 价格正差值合计
-            double priceSumR = 0;
+            double maxPriceSumR = 0;
 
 
             /**
@@ -141,7 +168,8 @@ public class VolumeDataAnalysis extends BaseDataAnalysis {
             double lastSum = 0;
             int lastTimes = 0;
 
-            for (int i = end_index; ; i++) {
+            System.out.print("获取平均价格：");
+            for (int i = start_index + MAX_SIZE; i >= end_index; i--) {
                 LinkedList<Double> doubles = volumnTimeArrClone[i % MAX_SIZE];
                 if (doubles != null) {
                     double temp = 0;
@@ -171,40 +199,42 @@ public class VolumeDataAnalysis extends BaseDataAnalysis {
                     }
                     lastSum = temp;
                     lastTimes = times;
+
+                    double tempTimes = timesTimeArr[i % MAX_SIZE];
+                    if (tempTimes != 0) {
+                        System.out.print(String.format("%.2f", temp / tempTimes));
+                    } else {
+                        System.out.print("\t");
+                    }
+                    System.out.print("\t");
                 }
 
-                if (i % MAX_SIZE == start_index) {
-                    break;
-                }
             }
+            System.out.println();
 
             /**
              * 分析价格数据.
              */
             System.out.print("获取最大价格：");
-            double lastPrice = 0;
+            double lastMaxPrice = 0;
 
-            for (int i = end_index; ; i++) {
+            for (int i = start_index + MAX_SIZE; i >= end_index; i--) {
                 double aDouble = maxPriceTimeArr[i % MAX_SIZE];
-                if (lastPrice > 0) {
-                    double chazhi = aDouble - lastPrice;
-                    priceSumR += chazhi > 0 ? chazhi : 0;
-                    priceSumRL += chazhi;
+                if (lastMaxPrice > 0) {
+                    double chazhi = aDouble - lastMaxPrice;
+                    maxPriceSumR += chazhi > 0 ? chazhi : 0;
+                    minPriceSumRL += chazhi;
                 }
                 System.out.print(String.format("%.2f", aDouble));
                 System.out.print("\t");
-                lastPrice = aDouble;
-
-                if (i % MAX_SIZE == start_index) {
-                    break;
-                }
+                lastMaxPrice = aDouble;
             }
             System.out.println();
 
             /**
              * 针对增长数据进行调整.
              */
-            double increment = priceSumRL / maxPriceTimeArr.length;
+            double increment = minPriceSumRL / maxPriceTimeArr.length;
             int inv = 1;
             if (sumR > 0) {
                 if (sumRL / sumR > 0.5) {
@@ -218,8 +248,8 @@ public class VolumeDataAnalysis extends BaseDataAnalysis {
                     inv += 1;
                 }
             }
-            if (priceSumR > 9) {
-                if (priceSumRL / priceSumR > 0.5) {
+            if (maxPriceSumR > 9) {
+                if (minPriceSumRL / maxPriceSumR > 0.5) {
                     increment *= 1.1;
                     inv += 1;
                 }
@@ -229,7 +259,7 @@ public class VolumeDataAnalysis extends BaseDataAnalysis {
                 increment *= 0.8;
             }
 
-            System.out.print("预测十秒(" + (increment > 0 ? "升" : increment == 0 ? "平" : "降") + ")：");
+            System.out.print("预测十秒(" + (increment > 0.05 ? "升" : increment < -0.02 ? "降" : "平") + ")：");
             double now = maxPriceTimeArr[0];
             if (now > 0) {
                 for (int i = 0; i < maxPriceTimeArr.length; i++) {
@@ -244,7 +274,16 @@ public class VolumeDataAnalysis extends BaseDataAnalysis {
                     }
                 }
             }
+
             System.out.println();
+            if (increment > 0.1) {
+                System.out.println("下一波有重要情况! 可能要疯涨!");
+                Toolkit.getDefaultToolkit().beep();
+            }
+            if (increment < -0.1) {
+                System.out.println("下一波有重要情况! 可能要狂降!");
+                Toolkit.getDefaultToolkit().beep();
+            }
         }
 
     }
