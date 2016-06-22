@@ -4,6 +4,8 @@ import analysis.BaseDataAnalysis;
 import domain.TransactionRecord;
 
 import java.awt.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -47,6 +49,8 @@ public class VolumeDataAnalysis extends BaseDataAnalysis {
     private LinkedHashMap<Long, Double> timeAndPrice = new LinkedHashMap<>();
     private LinkedHashMap<Long, LinkedList<Thread>> threadRegister = new LinkedHashMap<>();
 
+    private long lastVoiceTime = 0;
+
     public VolumeDataAnalysis(String type) {
         super(type);
         analysis();
@@ -79,6 +83,36 @@ public class VolumeDataAnalysis extends BaseDataAnalysis {
 
     @Override
     protected void save(TransactionRecord t) {
+
+        /**
+         * 预提醒.
+         */
+        if (t.getPrice() <= 75) {
+            if (lastVoiceTime == 0 || lastVoiceTime + 2000 < System.currentTimeMillis()) {
+                try {
+                    Runtime.getRuntime().exec("wscript D:\\workspace\\codespace\\IdeaProject\\gupiao\\INeedYou\\src\\main\\resources\\down75.vbs");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Toolkit.getDefaultToolkit().beep();
+                }
+                lastVoiceTime = System.currentTimeMillis();
+            }
+        }
+
+        if (t.getPrice() > 85) {
+            //Toolkit.getDefaultToolkit().beep();
+            if (lastVoiceTime == 0 || lastVoiceTime + 2000 < System.currentTimeMillis()) {
+                try {
+                    Runtime.getRuntime().exec("wscript D:\\workspace\\codespace\\IdeaProject\\gupiao\\INeedYou\\src\\main\\resources\\up85.vbs");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Toolkit.getDefaultToolkit().beep();
+                }
+                lastVoiceTime = System.currentTimeMillis();
+            }
+        }
+
+
         /**
          * 数据存储.
          */
@@ -112,9 +146,6 @@ public class VolumeDataAnalysis extends BaseDataAnalysis {
         }
         if (minPriceTimeArr[start_index] > t.getPrice()) {
             minPriceTimeArr[start_index] = t.getPrice();
-        }
-        if (t.getPrice() > 60.00) {
-            Toolkit.getDefaultToolkit().beep();
         }
 
     }
@@ -278,11 +309,11 @@ public class VolumeDataAnalysis extends BaseDataAnalysis {
             System.out.println();
             if (increment > 0.1) {
                 System.out.println("下一波有重要情况! 可能要疯涨!");
-                Toolkit.getDefaultToolkit().beep();
+                //Toolkit.getDefaultToolkit().beep();
             }
             if (increment < -0.1) {
                 System.out.println("下一波有重要情况! 可能要狂降!");
-                Toolkit.getDefaultToolkit().beep();
+                //Toolkit.getDefaultToolkit().beep();
             }
         }
 

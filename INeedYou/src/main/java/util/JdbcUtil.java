@@ -1,16 +1,12 @@
 package util;
 
+import config.PrivateConfig;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
-
-import config.PrivateConfig;
 
 /**
  * Jdbc工具类，内部实现了一个固定连接池.

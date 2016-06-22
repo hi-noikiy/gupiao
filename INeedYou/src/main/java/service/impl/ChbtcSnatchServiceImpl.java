@@ -1,7 +1,9 @@
 package service.impl;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -35,9 +37,7 @@ public class ChbtcSnatchServiceImpl implements SnatchService {
         WebSocketContainer container = ContainerProvider.getWebSocketContainer();
         String uri = "wss://kline.chbtc.com/websocket";
         try {
-            container.connectToServer(MyClient.class, URI.create(uri));
-            ClientEndpointConfig.Builder config = ClientEndpointConfig.Builder.create();
-            ClientEndpointConfig.Configurator configurator = new ClientEndpointConfig.Configurator();
+            container.connectToServer(new MyClient(), URI.create(uri));
             container.setAsyncSendTimeout(2000);
         } catch (DeploymentException e) {
             throw new Error(e);
@@ -46,15 +46,16 @@ public class ChbtcSnatchServiceImpl implements SnatchService {
         }
     }
 
-    public class MyClient extends Endpoint{
+    @ClientEndpoint
+    public class MyClient {
 
         public MyClient() {
         }
 
-        @Override
-        public void onOpen(Session session, EndpointConfig config) {
+        @OnOpen
+        public void onOpen(Session session, EndpointConfig config) throws IOException {
             System.out.println("交易日志记录开启!");
-            /*
+            /*s
             // 注册请求分析
 			{"event":"addChannel","channel":"chbtcethbtc_kline_15min"}
 			{'event':'addChannel','channel':'eth_btc_lasttrades'}
@@ -66,20 +67,27 @@ public class ChbtcSnatchServiceImpl implements SnatchService {
             // 发送买卖委托单监听
             // session.getBasicRemote().sendText("{'event':'addChannel','channel':'eth_cny_depth'}");
             // 发送成交记录
-            try {
-                session.getBasicRemote().sendText("{'event':'addChannel','channel':'eth_cny_ticker'}");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            session.getBasicRemote().sendText("{'event':'addChannel','channel':'eth_cny_lasttrades'}");
+            //session.getBasicRemote().sendText("{\"event\":\"addChannel\",\"channel\":\"chbtcethcny_kline_1min\"}");
             // session.getBasicRemote().sendText("{'event':'addChannel','channel':'btc_cny_lasttrades'}");
         }
 
+        @OnMessage
+        public void onMessage(ByteBuffer message) {
+            fenpei(new String(message.array()));
+        }
 
+
+        @OnMessage
         public void onMessage(String message) {
+            fenpei(message);
+        }
+
+        public void fenpei(String message) {
             JSONObject jsonT = new JSONObject(message);
             String channel = jsonT.getString("channel");
             if ("eth_cny_depth".equals(channel)) {
-                if(1==1)return;
+                if (1 == 1) return;
                 /** 获取买入委托记录. */
                 JSONArray asksArr = jsonT.getJSONArray("asks");
                 /** 获取卖出委托记录. */
@@ -169,11 +177,13 @@ public class ChbtcSnatchServiceImpl implements SnatchService {
             }
         }
 
+        @OnClose
         public void onClose() {
             System.out.println("交易日志记录关闭!");
             sync();
         }
 
+        @OnError
         public void onError(Throwable t) {
             System.out.println("交易日志记录关闭!");
             t.printStackTrace();
