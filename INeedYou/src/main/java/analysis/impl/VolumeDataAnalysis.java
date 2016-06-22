@@ -1,13 +1,11 @@
 package analysis.impl;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.Timer;
-import java.util.TimerTask;
-
 import analysis.BaseDataAnalysis;
 import domain.TransactionRecord;
+import util.SayUtil;
+
+import java.io.IOException;
+import java.util.*;
 
 /**
  * 成交量数据分析器。 根据当前时间段成交量简答判断下一步的涨跌情况，较为简单粗暴。 基本规则： 在成交量急剧上升时，同时价格在10秒内猛涨。
@@ -20,274 +18,274 @@ import domain.TransactionRecord;
  * 1、保存数据对象 2、清洗数据，获取需要的指标数据.
  * <p>
  * <p>
- * <p>
- * <p>
  * Created by huangming on 2016/6/17.
  */
 public class VolumeDataAnalysis extends BaseDataAnalysis {
 
-	/** 缓存20秒的数据作为分析依据. */
-	private final static int MAX_SIZE = 60;
+    /**
+     * 缓存20秒的数据作为分析依据.
+     */
+    private final static int MAX_SIZE = 60;
 
-	/** 以下是各个指标. **/
+    /** 以下是各个指标. **/
 
-	/** 当前最小价格. **/
-	private final static int COUNTER_PRICE_MIN = 1;
-	/** 当前最大价格. **/
-	private final static int COUNTER_PRICE_MAX = 2;
-	/** 当前均价. **/
-	private final static int COUNTER_PRICE_AVG = 3;
-	/** 价位蛇形折线差合计. **/
-	private final static int COUNTER_PRICE_INCREASE = 4;
-	/** 正价位蛇形折线差合计. **/
-	private final static int COUNTER_PRICE_PINCREASE = 5;
+    /**
+     * 当前最小价格.
+     **/
+    private final static int COUNTER_PRICE_MIN = 1;
+    /**
+     * 当前最大价格.
+     **/
+    private final static int COUNTER_PRICE_MAX = 2;
+    /**
+     * 当前均价.
+     **/
+    private final static int COUNTER_PRICE_AVG = 3;
+    /**
+     * 价位蛇形折线差合计.
+     **/
+    private final static int COUNTER_PRICE_INCREASE = 4;
+    /**
+     * 正价位蛇形折线差合计.
+     **/
+    private final static int COUNTER_PRICE_PINCREASE = 5;
 
-	/** 成交次数. */
-	private final static int COUNTER_VOLUMN_TIME = 6;
-	/** 成交量总净额. */
-	private final static int COUNTER_VOLUMN_MONEY = 7;
-	/** 成交总数量. */
-	private final static int COUNTER_VOLUMN_AMOUNT = 8;
-	/** 成交量蛇形折线差合计. */
-	private final static int COUNTER_VOLUMN_INCREASE = 9;
-	/** 成交量正蛇形折线差合计. */
-	private final static int COUNTER_VOLUMN_PINCREASE = 10;
+    /**
+     * 成交次数.
+     */
+    private final static int COUNTER_VOLUMN_TIME = 6;
+    /**
+     * 成交量总净额.
+     */
+    private final static int COUNTER_VOLUMN_MONEY = 7;
+    /**
+     * 成交总数量.
+     */
+    private final static int COUNTER_VOLUMN_AMOUNT = 8;
+    /**
+     * 成交量蛇形折线差合计.
+     */
+    private final static int COUNTER_VOLUMN_INCREASE = 9;
+    /**
+     * 成交量正蛇形折线差合计.
+     */
+    private final static int COUNTER_VOLUMN_PINCREASE = 10;
 
-	/** 当前价格方差. */
-	private final static int COUNTER_OTHER_VARIANCE = 11;
+    /**
+     * 当前价格方差.
+     */
+    private final static int COUNTER_OTHER_VARIANCE = 11;
 
-	private final static int COUNTER_MAXINDEX = 11;
+    private final static int COUNTER_MAXINDEX = 12;
 
-	/** 交易记录存储. */
-	private LinkedList<TransactionRecord>[] tranList = new LinkedList[MAX_SIZE];
-	/** 分析记录存储. */
-	// private ArrayList<double[][]> analysisArr = new
-	// ArrayList<double[][]>(MAX_SIZE);
+    /**
+     * 交易记录存储.
+     */
+    private LinkedList<TransactionRecord>[] tranList = new LinkedList[MAX_SIZE];
+    private LinkedList<TransactionRecord> tempList = new LinkedList<TransactionRecord>();
 
-	// private Map<Integer, double[][]> counterMap = new HashMap<>();
+    private int start_index = MAX_SIZE - 1;
+    private int end_index = 0;
 
-	/** 时间对应索引. */
-	private long[] timeForCounter = new long[MAX_SIZE];
+    /**
+     * 声音提示间隔.
+     */
+    private long lastVoiceTime = 0;
 
-	private long lastupdatetime = 0;
-	private int start_index = MAX_SIZE - 1;
-	private int end_index = 0;
+    public VolumeDataAnalysis(String type) {
+        super(type);
+        analysis();
+    }
 
-	// private LinkedHashMap<Long, Double> timeAndPrice = new LinkedHashMap<>();
-	// private LinkedHashMap<Long, LinkedList<Thread>> threadRegister = new
-	// LinkedHashMap<>();
+    @Override
+    public double getPrice(Date date) {
+        return 0;
+    }
 
-	private long lastVoiceTime = 0;
+    @Override
+    protected void save(TransactionRecord t) {
+        tempList.add(t);
+    }
 
-	public VolumeDataAnalysis(String type) {
-		super(type);
-		analysis();
-	}
+    public void analysis() {
+        /** 定时汇总数据. */
+        new Timer().schedule(new FetchSecondData(), 0, 1000);
+        /** 启动定时分析. */
+        new Timer().schedule(new VolumeAnalysis(), 0, 1000);
+        /** 启动定时决策. */
+        // TODO
+    }
 
-	@Override
-	public double getPrice(Date date) {
-		return 0;
-	}
+    public double[] compare(double[] a, double[] b) {
+        if (a.length == b.length) {
+            double[] c = new double[a.length];
+            for (int i = 0; i < a.length; i++) {
+                c[i] = a[i] - b[i];
+            }
+            return c;
+        } else {
+            return null;
+        }
+    }
 
-	@Override
-	protected void save(TransactionRecord t) {
-		Calendar calendar = Calendar.getInstance();
-		calendar.set(Calendar.MILLISECOND, 0);
-		long curtime = calendar.getTimeInMillis();
-		/**
-		 * 预提醒.
-		 */
-		if (t.getPrice() <= 75) {
-			if (lastVoiceTime == 0 || lastVoiceTime + 2000 < System.currentTimeMillis()) {
-				/*
-				 * try { Runtime.getRuntime().exec(
-				 * "wscript D:\\workspace\\codespace\\IdeaProject\\gupiao\\INeedYou\\src\\main\\resources\\down75.vbs"
-				 * ); } catch (IOException e) { e.printStackTrace();
-				 * Toolkit.getDefaultToolkit().beep(); }
-				 */
-				lastVoiceTime = curtime;
-			}
-		}
 
-		if (t.getPrice() > 85) {
-			// Toolkit.getDefaultToolkit().beep();
-			if (lastVoiceTime == 0 || lastVoiceTime + 2000 < System.currentTimeMillis()) {
-				/*
-				 * try { Runtime.getRuntime().exec(
-				 * "wscript D:\\workspace\\codespace\\IdeaProject\\gupiao\\INeedYou\\src\\main\\resources\\up85.vbs"
-				 * ); } catch (IOException e) { e.printStackTrace();
-				 * Toolkit.getDefaultToolkit().beep(); }
-				 */
-				lastVoiceTime = curtime;
-			}
-		}
+    /**
+     * 定时汇总数据.
+     */
+    private class FetchSecondData extends TimerTask {
+        @Override
+        public void run() {
+            start_index++;
+            end_index++;
+            start_index = start_index % 60;
+            end_index = end_index % 60;
+            tranList[start_index] = tempList;
+            tempList = new LinkedList<>();
+        }
+    }
 
-		/**
-		 * 每秒数据归集，但有上限.
-		 */
-		if (lastupdatetime == 0) {
-			lastupdatetime = curtime;
-		} else {
-			if (curtime != lastupdatetime) {
-				// 切换到下一秒.
-				lastupdatetime = curtime;
-				start_index++;
-				start_index = start_index % MAX_SIZE;
-				end_index++;
-				end_index = end_index % MAX_SIZE;
+    /**
+     * 分析器.
+     */
+    private class VolumeAnalysis extends TimerTask {
 
-				LinkedList<TransactionRecord> list = tranList[start_index];
-				if (list != null) {
-					list.clear();
-				}
-				timeForCounter[start_index] = curtime;
-			}
-		}
+        @Override
+        public void run() {
+            // 分析器，记录本身分析时间.
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(Calendar.MILLISECOND, 0);
+            System.out.print(String.format("%02d", calendar.get(Calendar.HOUR_OF_DAY)) + ":"
+                    + String.format("%02d", calendar.get(Calendar.MINUTE)) + ":"
+                    + String.format("%02d", calendar.get(Calendar.SECOND)));
 
-		if (tranList[start_index] == null) {
-			tranList[start_index] = new LinkedList<>();
-		}
-		tranList[start_index].add(t);
+            /** 记录时间范围内对应的坐标. */
+            /** 当前秒坐标，存在并发. */
+            int start_index = VolumeDataAnalysis.this.start_index;
+            /** 当截止，存在并发. */
+            int end_index = VolumeDataAnalysis.this.end_index;
+            /** 浅拷贝，防止数据被修改. */
+            LinkedList<TransactionRecord>[] tranList2 = (LinkedList<TransactionRecord>[]) tranList.clone();
 
-	}
+            /** 数据分析存储地. double[类型][秒] */
+            double[][] counter = new double[MAX_SIZE][COUNTER_MAXINDEX];
 
-	public void analysis() {
-		/** 启动定时分析. */
-		new Timer().schedule(new VolumeAnalysis(), 0, 1000);
-		/** 启动定时决策. */
-		// TODO
-	}
+            /** 汇总指标统计. */
+            /** 全汇总. */
+            double[] total = new double[MAX_SIZE];
+            /** 30秒内汇总. */
+            double[] total30 = new double[MAX_SIZE];
+            /** 5秒内汇总. */
+            double[] total5 = new double[MAX_SIZE];
 
-	public double[] compare(double[] a, double[] b) {
-		if (a.length == b.length) {
-			double[] c = new double[a.length];
-			for (int i = 0; i < a.length; i++) {
-				c[i] = a[i] - b[i];
-			}
-			return c;
-		} else {
-			return null;
-		}
-	}
+            /**
+             * 当前秒段数据指标提取.
+             */
+            for (int bi = start_index + MAX_SIZE, f = 0; bi > end_index; bi--, f++) {
+                int i = bi % (MAX_SIZE);
+                LinkedList<TransactionRecord> list = tranList2[i];
 
-	/**
-	 * 分析器.
-	 */
-	private class VolumeAnalysis extends TimerTask {
+                double lastPrice = 0;
+                double lastVolumn = 0;
+                if (list != null && list.size() > 0) {
+                    for (TransactionRecord transactionRecord : list) {
+                        double price = transactionRecord.getPrice();
+                        double volumn = transactionRecord.getAmount() * transactionRecord.getPrice();
 
-		@Override
-		public void run() {
-			// 分析器，记录本身分析时间.
-			Calendar calendar = Calendar.getInstance();
-			calendar.set(Calendar.MILLISECOND, 0);
-			long curTime = calendar.getTimeInMillis();
-			System.out.print(String.format("%02d", calendar.get(Calendar.HOUR_OF_DAY)) + ":"
-					+ String.format("%02d", calendar.get(Calendar.MINUTE)) + ":"
-					+ String.format("%02d", calendar.get(Calendar.SECOND)));
+                        if (price > counter[i][COUNTER_PRICE_MAX]) {
+                            counter[i][COUNTER_PRICE_MAX] = price;
+                        }
+                        if (price < counter[i][COUNTER_PRICE_MIN]) {
+                            counter[i][COUNTER_PRICE_MIN] = 0;
+                        }
+                        counter[i][COUNTER_VOLUMN_AMOUNT] += transactionRecord.getAmount();
+                        counter[i][COUNTER_VOLUMN_MONEY] += volumn;
+                        counter[i][COUNTER_VOLUMN_TIME]++;
 
-			/** 记录时间范围内对应的坐标. */
-			/** 当前秒坐标，存在并发. */
-			int start_index = VolumeDataAnalysis.this.start_index;
-			/** 当截止，存在并发. */
-			int end_index = VolumeDataAnalysis.this.end_index;
-			/** 浅拷贝，防止数据被修改. */
-			LinkedList<TransactionRecord>[] tranList2 = (LinkedList<TransactionRecord>[]) tranList.clone();
+                        if (lastPrice == 0 || lastVolumn == 0) {
+                            counter[i][COUNTER_VOLUMN_INCREASE] = 0;
+                            counter[i][COUNTER_PRICE_INCREASE] = 0;
+                            counter[i][COUNTER_PRICE_PINCREASE] = 0;
+                            counter[i][COUNTER_VOLUMN_PINCREASE] = 0;
+                        } else {
+                            counter[i][COUNTER_VOLUMN_INCREASE] += price - lastPrice;
+                            counter[i][COUNTER_VOLUMN_PINCREASE] = price - lastPrice > 0 ? price - lastPrice : 0;
+                            counter[i][COUNTER_PRICE_INCREASE] += volumn - lastPrice;
+                            counter[i][COUNTER_PRICE_PINCREASE] = volumn - lastPrice > 0 ? volumn - lastPrice : 0;
+                        }
+                        lastPrice = price;
+                        lastVolumn = volumn;
+                    }
+                    for (int j = 0; j < counter[i].length; j++) {
+                        total[j] += counter[i][j];
+                        if (f < 30) {
+                            total30[j] += counter[i][j];
+                        }
+                        if (f < 5) {
+                            total5[j] += counter[i][j];
+                        }
+                    }
+                    counter[i][COUNTER_PRICE_AVG] = counter[i][COUNTER_VOLUMN_MONEY]
+                            / counter[i][COUNTER_VOLUMN_AMOUNT];
+                }
+            }
 
-			/** 数据分析存储地. double[类型][秒] */
-			double[][] counter = new double[MAX_SIZE][COUNTER_MAXINDEX];
+            LinkedList<TransactionRecord> list = tranList2[start_index];
+            if (list == null || list.size() == 0) {
+                for (int i = 1; i < MAX_SIZE; i++) {
+                    int before_index = (start_index + MAX_SIZE - i) % MAX_SIZE;
+                    if (counter[before_index][COUNTER_PRICE_MAX] == 0) {
+                        continue;
+                    } else {
+                        counter[start_index][COUNTER_PRICE_MIN] = counter[before_index][COUNTER_PRICE_MIN];
+                        counter[start_index][COUNTER_PRICE_MAX] = counter[before_index][COUNTER_PRICE_MAX];
+                        counter[start_index][COUNTER_PRICE_AVG] = counter[before_index][COUNTER_PRICE_AVG];
+                        counter[start_index][COUNTER_PRICE_INCREASE] = 0;
+                        counter[start_index][COUNTER_PRICE_PINCREASE] = 0;
+                        counter[start_index][COUNTER_VOLUMN_TIME] = 0;
+                        counter[start_index][COUNTER_VOLUMN_MONEY] = 0;
+                        counter[start_index][COUNTER_VOLUMN_AMOUNT] = 0;
+                        counter[start_index][COUNTER_VOLUMN_INCREASE] = 0;
+                        counter[start_index][COUNTER_VOLUMN_PINCREASE] = 0;
+                        counter[start_index][COUNTER_OTHER_VARIANCE] = 0;
+                        break;
+                    }
+                }
 
-			/** 汇总指标统计. */
-			/** 全汇总. */
-			double[] total = new double[MAX_SIZE];
-			/** 30秒内汇总. */
-			double[] total30 = new double[MAX_SIZE];
-			/** 5秒内汇总. */
-			double[] total5 = new double[MAX_SIZE];
+            }
 
-			/**
-			 * 当前秒段数据指标提取.
-			 */
-			for (int bi = start_index + MAX_SIZE, totalIndex = 0; bi > end_index; bi--, totalIndex++) {
-				int i = bi % MAX_SIZE;
-				LinkedList<TransactionRecord> list = tranList2[i];
+            /** 求当前方差. */
+            // TODO
 
-				double lastPrice = 0;
-				double lastVolumn = 0;
-				if (list != null) {
-					for (TransactionRecord transactionRecord : list) {
-						double price = transactionRecord.getPrice();
-						double volumn = transactionRecord.getAmount() * transactionRecord.getPrice();
+            /** 三十秒内差值比较. */
+            double[] compare30 = compare(counter[start_index], counter[(start_index + MAX_SIZE - 30) % MAX_SIZE]);
+            /** 五秒内差值比较. */
+            double[] compare5 = compare(counter[start_index], counter[(start_index + MAX_SIZE - 5) % MAX_SIZE]);
+            System.out.print("\t当前最高价:" + String.format("%.2f", counter[start_index][COUNTER_PRICE_MAX]));
+            simpleConsole(compare5, 5);
+            simpleConsole(compare30, 5);
+            System.out.print("\t5秒内交易量:" + String.format("%.2f", total5[COUNTER_VOLUMN_MONEY]));
+            System.out.println();
 
-						if (price > counter[i][COUNTER_PRICE_MAX]) {
-							counter[i][COUNTER_PRICE_MAX] = price;
-						}
-						if (price < counter[i][COUNTER_PRICE_MIN]) {
-							counter[i][COUNTER_PRICE_MIN] = 0;
-						}
-						counter[i][COUNTER_VOLUMN_AMOUNT] += transactionRecord.getAmount();
-						counter[i][COUNTER_VOLUMN_MONEY] += volumn;
-						counter[i][COUNTER_VOLUMN_TIME]++;
+            if (counter[start_index][COUNTER_PRICE_MAX] > 85) {
+                if (lastVoiceTime == 0 || lastVoiceTime + 3000 < System.currentTimeMillis()) {
+                    SayUtil.say(String.format("%.2f", counter[start_index][COUNTER_PRICE_MAX]));
+                    lastVoiceTime = System.currentTimeMillis();
+                }
+            }
+        }
+    }
 
-						if (lastPrice == 0 || lastVolumn == 0) {
-							counter[i][COUNTER_VOLUMN_INCREASE] = 0;
-							counter[i][COUNTER_PRICE_INCREASE] = 0;
-							counter[i][COUNTER_PRICE_PINCREASE] = 0;
-							counter[i][COUNTER_VOLUMN_PINCREASE] = 0;
-						} else {
-							counter[i][COUNTER_VOLUMN_INCREASE] += price - lastPrice;
-							counter[i][COUNTER_VOLUMN_PINCREASE] = price - lastPrice > 0 ? price - lastPrice : 0;
-							counter[i][COUNTER_PRICE_INCREASE] += volumn - lastPrice;
-							counter[i][COUNTER_PRICE_PINCREASE] = volumn - lastPrice > 0 ? volumn - lastPrice : 0;
-						}
-						lastPrice = price;
-						lastVolumn = volumn;
-					}
-					for (int j = 0; j < counter[i].length; j++) {
-						total[j] += counter[i][j];
-						if (i < 30) {
-							total30[j] += counter[i][j];
-						}
-						if (i < 5) {
-							total5[j] += counter[i][j];
-						}
-					}
-					counter[i][COUNTER_PRICE_AVG] = counter[i][COUNTER_VOLUMN_MONEY]
-							/ counter[i][COUNTER_VOLUMN_AMOUNT];
-					i++;
-				}
-			}
-
-			/** 求当前方差. */
-			// TODO
-
-			/** 三十秒内差值比较. */
-			double[] compare30 = compare(counter[start_index], counter[(start_index + MAX_SIZE - 30) % MAX_SIZE]);
-			/** 五秒内差值比较. */
-			double[] compare5 = compare(counter[start_index], counter[(start_index + MAX_SIZE - 5) % MAX_SIZE]);
-
-			System.out.print("\t当前最高价:" + counter[start_index][COUNTER_PRICE_MAX]);
-			if (compare30 != null) {
-				System.out.print("\t30秒内正在");
-				if (compare30[COUNTER_PRICE_MAX] > 0) {
-					System.out.print("涨");
-				} else {
-					System.out.print("跌");
-				}
-				System.out.print("\t幅度:" + compare30[COUNTER_PRICE_MAX]);
-			}
-			if (compare5 != null) {
-				System.out.print("\t5秒内正在");
-				if (compare5[COUNTER_PRICE_MAX] > 0) {
-					System.out.print("涨");
-				} else {
-					System.out.print("跌");
-				}
-				System.out.print("\t幅度:" + String.format("%.2f", compare5[COUNTER_PRICE_MAX]));
-			}
-			System.out.println();
-
-		}
-
-	}
-
+    public void simpleConsole(double[] compare30, int sec) {
+        if (compare30 != null) {
+            System.out.print("\t" + sec + "秒内正在");
+            if (compare30[COUNTER_PRICE_MAX] > 0) {
+                System.out.print("涨↑");
+            } else if (compare30[COUNTER_PRICE_MAX] == 0) {
+                System.out.print("平-");
+            } else {
+                System.out.print("跌↓");
+            }
+            System.out.print("\t幅度:" + String.format("%.2f", compare30[COUNTER_PRICE_MAX]));
+        }
+    }
 }
