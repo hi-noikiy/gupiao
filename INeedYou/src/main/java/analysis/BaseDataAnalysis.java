@@ -1,14 +1,10 @@
 package analysis;
 
-import api.ChartSerlvet;
+import java.util.Date;
+
 import domain.TransactionRecord;
 import push.PushRegisterCenter;
 import push.repository.PushInterface;
-
-import javax.websocket.Session;
-import java.io.IOException;
-import java.util.Date;
-import java.util.Queue;
 
 /**
  * 针对当前交易情况，返回后10s的涨幅情况.
@@ -30,7 +26,7 @@ public abstract class BaseDataAnalysis {
      * @param date
      * @return
      */
-    public abstract double getPrice(Date date);
+    public abstract double getPrice(Date date);	
 
     /**
      * 分析数据，并存好.
