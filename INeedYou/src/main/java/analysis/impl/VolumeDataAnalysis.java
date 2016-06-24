@@ -4,7 +4,6 @@ import analysis.BaseDataAnalysis;
 import domain.TransactionRecord;
 import util.SayUtil;
 
-import java.io.IOException;
 import java.util.*;
 
 /**
@@ -82,10 +81,19 @@ public class VolumeDataAnalysis extends BaseDataAnalysis {
      * 交易记录存储.
      */
     private LinkedList<TransactionRecord>[] tranList = new LinkedList[MAX_SIZE];
-    private LinkedList<TransactionRecord> tempList = new LinkedList<TransactionRecord>();
+    private LinkedList<TransactionRecord> tempList = new LinkedList<>();
+
+    /**
+     * 指标数据汇总.
+     */
+    private double[][] counter = new double[MAX_SIZE][COUNTER_MAXINDEX];
 
     private int start_index = MAX_SIZE - 1;
     private int end_index = 0;
+
+    private String pt = null;
+    private String bz = null;
+
 
     /**
      * 声音提示间隔.
@@ -104,18 +112,28 @@ public class VolumeDataAnalysis extends BaseDataAnalysis {
 
     @Override
     protected void save(TransactionRecord t) {
+        if (pt == null)
+            pt = t.getPalType();
+        if (bz == null)
+            bz = t.getGoodType();
+
         tempList.add(t);
     }
 
     public void analysis() {
         /** 定时汇总数据. */
         new Timer().schedule(new FetchSecondData(), 0, 1000);
-        /** 启动定时分析. */
-        new Timer().schedule(new VolumeAnalysis(), 0, 1000);
         /** 启动定时决策. */
         // TODO
     }
 
+    /**
+     * 比较指定秒差数据.
+     *
+     * @param a
+     * @param b
+     * @return
+     */
     public double[] compare(double[] a, double[] b) {
         if (a.length == b.length) {
             double[] c = new double[a.length];
@@ -126,6 +144,24 @@ public class VolumeDataAnalysis extends BaseDataAnalysis {
         } else {
             return null;
         }
+    }
+
+    /**
+     * 汇总几秒内的数据.
+     *
+     * @param start_index
+     * @param size
+     * @return
+     */
+    public double[] total(int start_index, int size) {
+        double[] total = new double[COUNTER_MAXINDEX];
+        for (int i = 0; i < size; i++) {
+            int index = (start_index + MAX_SIZE - i) % MAX_SIZE;
+            for (int j = 0; j < counter[i].length; j++) {
+                total[j] += counter[index][j];
+            }
+        }
+        return total;
     }
 
 
@@ -141,151 +177,136 @@ public class VolumeDataAnalysis extends BaseDataAnalysis {
             end_index = end_index % 60;
             tranList[start_index] = tempList;
             tempList = new LinkedList<>();
-        }
-    }
 
-    /**
-     * 分析器.
-     */
-    private class VolumeAnalysis extends TimerTask {
-
-        @Override
-        public void run() {
             // 分析器，记录本身分析时间.
             Calendar calendar = Calendar.getInstance();
             calendar.set(Calendar.MILLISECOND, 0);
-            System.out.print(String.format("%02d", calendar.get(Calendar.HOUR_OF_DAY)) + ":"
-                    + String.format("%02d", calendar.get(Calendar.MINUTE)) + ":"
-                    + String.format("%02d", calendar.get(Calendar.SECOND)));
 
-            /** 记录时间范围内对应的坐标. */
-            /** 当前秒坐标，存在并发. */
-            int start_index = VolumeDataAnalysis.this.start_index;
-            /** 当截止，存在并发. */
-            int end_index = VolumeDataAnalysis.this.end_index;
-            /** 浅拷贝，防止数据被修改. */
-            LinkedList<TransactionRecord>[] tranList2 = (LinkedList<TransactionRecord>[]) tranList.clone();
-
-            /** 数据分析存储地. double[类型][秒] */
-            double[][] counter = new double[MAX_SIZE][COUNTER_MAXINDEX];
-
-            /** 汇总指标统计. */
-            /** 全汇总. */
-            double[] total = new double[MAX_SIZE];
-            /** 30秒内汇总. */
-            double[] total30 = new double[MAX_SIZE];
-            /** 5秒内汇总. */
-            double[] total5 = new double[MAX_SIZE];
-
+            // 当前时间数据清晰.
             /**
              * 当前秒段数据指标提取.
              */
-            for (int bi = start_index + MAX_SIZE, f = 0; bi > end_index; bi--, f++) {
-                int i = bi % (MAX_SIZE);
-                LinkedList<TransactionRecord> list = tranList2[i];
+            int innnerStartIndex = start_index;
+            LinkedList<TransactionRecord> ll = tranList[innnerStartIndex];
 
-                double lastPrice = 0;
-                double lastVolumn = 0;
-                if (list != null && list.size() > 0) {
-                    for (TransactionRecord transactionRecord : list) {
-                        double price = transactionRecord.getPrice();
-                        double volumn = transactionRecord.getAmount() * transactionRecord.getPrice();
+            double lastPrice = 0;
+            double lastVolumn = 0;
+            if (ll != null && ll.size() > 0) {
+                for (TransactionRecord transactionRecord : ll) {
+                    double price = transactionRecord.getPrice();
+                    double volume = transactionRecord.getAmount() * transactionRecord.getPrice();
 
-                        if (price > counter[i][COUNTER_PRICE_MAX]) {
-                            counter[i][COUNTER_PRICE_MAX] = price;
-                        }
-                        if (price < counter[i][COUNTER_PRICE_MIN]) {
-                            counter[i][COUNTER_PRICE_MIN] = 0;
-                        }
-                        counter[i][COUNTER_VOLUMN_AMOUNT] += transactionRecord.getAmount();
-                        counter[i][COUNTER_VOLUMN_MONEY] += volumn;
-                        counter[i][COUNTER_VOLUMN_TIME]++;
-
-                        if (lastPrice == 0 || lastVolumn == 0) {
-                            counter[i][COUNTER_VOLUMN_INCREASE] = 0;
-                            counter[i][COUNTER_PRICE_INCREASE] = 0;
-                            counter[i][COUNTER_PRICE_PINCREASE] = 0;
-                            counter[i][COUNTER_VOLUMN_PINCREASE] = 0;
-                        } else {
-                            counter[i][COUNTER_VOLUMN_INCREASE] += price - lastPrice;
-                            counter[i][COUNTER_VOLUMN_PINCREASE] = price - lastPrice > 0 ? price - lastPrice : 0;
-                            counter[i][COUNTER_PRICE_INCREASE] += volumn - lastPrice;
-                            counter[i][COUNTER_PRICE_PINCREASE] = volumn - lastPrice > 0 ? volumn - lastPrice : 0;
-                        }
-                        lastPrice = price;
-                        lastVolumn = volumn;
+                    if (price > counter[innnerStartIndex][COUNTER_PRICE_MAX]) {
+                        counter[innnerStartIndex][COUNTER_PRICE_MAX] = price;
                     }
-                    for (int j = 0; j < counter[i].length; j++) {
-                        total[j] += counter[i][j];
-                        if (f < 30) {
-                            total30[j] += counter[i][j];
-                        }
-                        if (f < 5) {
-                            total5[j] += counter[i][j];
-                        }
+                    if (price < counter[innnerStartIndex][COUNTER_PRICE_MIN]) {
+                        counter[innnerStartIndex][COUNTER_PRICE_MIN] = 0;
                     }
-                    counter[i][COUNTER_PRICE_AVG] = counter[i][COUNTER_VOLUMN_MONEY]
-                            / counter[i][COUNTER_VOLUMN_AMOUNT];
-                }
-            }
+                    counter[innnerStartIndex][COUNTER_VOLUMN_AMOUNT] += transactionRecord.getAmount();
+                    counter[innnerStartIndex][COUNTER_VOLUMN_MONEY] += volume;
+                    counter[innnerStartIndex][COUNTER_VOLUMN_TIME]++;
 
-            LinkedList<TransactionRecord> list = tranList2[start_index];
-            if (list == null || list.size() == 0) {
-                for (int i = 1; i < MAX_SIZE; i++) {
-                    int before_index = (start_index + MAX_SIZE - i) % MAX_SIZE;
-                    if (counter[before_index][COUNTER_PRICE_MAX] == 0) {
-                        continue;
+                    if (lastPrice == 0 || lastVolumn == 0) {
+                        counter[innnerStartIndex][COUNTER_VOLUMN_INCREASE] = 0;
+                        counter[innnerStartIndex][COUNTER_PRICE_INCREASE] = 0;
+                        counter[innnerStartIndex][COUNTER_PRICE_PINCREASE] = 0;
+                        counter[innnerStartIndex][COUNTER_VOLUMN_PINCREASE] = 0;
                     } else {
-                        counter[start_index][COUNTER_PRICE_MIN] = counter[before_index][COUNTER_PRICE_MIN];
-                        counter[start_index][COUNTER_PRICE_MAX] = counter[before_index][COUNTER_PRICE_MAX];
-                        counter[start_index][COUNTER_PRICE_AVG] = counter[before_index][COUNTER_PRICE_AVG];
-                        counter[start_index][COUNTER_PRICE_INCREASE] = 0;
-                        counter[start_index][COUNTER_PRICE_PINCREASE] = 0;
-                        counter[start_index][COUNTER_VOLUMN_TIME] = 0;
-                        counter[start_index][COUNTER_VOLUMN_MONEY] = 0;
-                        counter[start_index][COUNTER_VOLUMN_AMOUNT] = 0;
-                        counter[start_index][COUNTER_VOLUMN_INCREASE] = 0;
-                        counter[start_index][COUNTER_VOLUMN_PINCREASE] = 0;
-                        counter[start_index][COUNTER_OTHER_VARIANCE] = 0;
-                        break;
+                        counter[innnerStartIndex][COUNTER_VOLUMN_INCREASE] += price - lastPrice;
+                        counter[innnerStartIndex][COUNTER_VOLUMN_PINCREASE] = price - lastPrice > 0 ? price - lastPrice : 0;
+                        counter[innnerStartIndex][COUNTER_PRICE_INCREASE] += volume - lastPrice;
+                        counter[innnerStartIndex][COUNTER_PRICE_PINCREASE] = volume - lastPrice > 0 ? volume - lastPrice : 0;
                     }
+                    lastPrice = price;
+                    lastVolumn = volume;
                 }
+                counter[innnerStartIndex][COUNTER_PRICE_AVG] = counter[innnerStartIndex][COUNTER_VOLUMN_MONEY]
+                        / counter[innnerStartIndex][COUNTER_VOLUMN_AMOUNT];
 
+            } else {
+                int before_index = (start_index + MAX_SIZE - 1) % MAX_SIZE;
+                counter[start_index][COUNTER_PRICE_MIN] = counter[before_index][COUNTER_PRICE_MIN];
+                counter[start_index][COUNTER_PRICE_MAX] = counter[before_index][COUNTER_PRICE_MAX];
+                counter[start_index][COUNTER_PRICE_AVG] = counter[before_index][COUNTER_PRICE_AVG];
+                counter[start_index][COUNTER_PRICE_INCREASE] = 0;
+                counter[start_index][COUNTER_PRICE_PINCREASE] = 0;
+                counter[start_index][COUNTER_VOLUMN_TIME] = 0;
+                counter[start_index][COUNTER_VOLUMN_MONEY] = 0;
+                counter[start_index][COUNTER_VOLUMN_AMOUNT] = 0;
+                counter[start_index][COUNTER_VOLUMN_INCREASE] = 0;
+                counter[start_index][COUNTER_VOLUMN_PINCREASE] = 0;
+                counter[start_index][COUNTER_OTHER_VARIANCE] = 0;
             }
+
+            // 与过去时间合并比较.
+            /** 汇总指标统计. */
+            /** 5秒内汇总. */
+            double[] total5 = total(start_index, 5);
 
             /** 求当前方差. */
             // TODO
 
-            /** 三十秒内差值比较. */
-            double[] compare30 = compare(counter[start_index], counter[(start_index + MAX_SIZE - 30) % MAX_SIZE]);
-            /** 五秒内差值比较. */
-            double[] compare5 = compare(counter[start_index], counter[(start_index + MAX_SIZE - 5) % MAX_SIZE]);
-            System.out.print("\t当前最高价:" + String.format("%.2f", counter[start_index][COUNTER_PRICE_MAX]));
-            simpleConsole(compare5, 5);
-            simpleConsole(compare30, 5);
-            System.out.print("\t5秒内交易量:" + String.format("%.2f", total5[COUNTER_VOLUMN_MONEY]));
-            System.out.println();
+            // System.out.print("\t平台:" + pt + "\t币种:" + bz);
+            /** 三秒内差值比较. */
+            //System.out.print("\t当前最高价:" + String.format("%.2f", counter[innnerStartIndex][COUNTER_PRICE_MAX]));
 
-            if (counter[start_index][COUNTER_PRICE_MAX] > 85) {
-                if (lastVoiceTime == 0 || lastVoiceTime + 3000 < System.currentTimeMillis()) {
-                    SayUtil.say(String.format("%.2f", counter[start_index][COUNTER_PRICE_MAX]));
-                    lastVoiceTime = System.currentTimeMillis();
+            /** 五秒内差值比较. */
+            double[] compare5 = compare(counter[innnerStartIndex], counter[(innnerStartIndex + MAX_SIZE - 5) % MAX_SIZE]);
+
+            /** 三十秒内差值比较. */
+            double[] compare30 = compare(counter[innnerStartIndex], counter[(innnerStartIndex + MAX_SIZE - 30) % MAX_SIZE]);
+
+
+            //System.out.print("\t5秒内交易量:" + String.format("%.2f", total5[COUNTER_VOLUMN_MONEY]));
+            //System.out.print("\t  交易量:" + String.format("%.2f", counter[innnerStartIndex][COUNTER_VOLUMN_MONEY]));
+
+            if (lastVoiceTime == 0 || lastVoiceTime + 5000 < System.currentTimeMillis()) {
+                StringBuilder sayBu = new StringBuilder();
+                if (counter[innnerStartIndex][COUNTER_PRICE_MAX] > 90) {
+                    sayBu.append(String.format("%.2f", counter[innnerStartIndex][COUNTER_PRICE_MAX]));
                 }
+                if (counter[innnerStartIndex][COUNTER_PRICE_MAX] < 70) {
+                    sayBu.append(String.format("%.2f", counter[innnerStartIndex][COUNTER_PRICE_MAX]));
+                }
+                if (counter[innnerStartIndex][COUNTER_VOLUMN_AMOUNT] > 1000) {
+                    sayBu.append("成交" + counter[innnerStartIndex][COUNTER_VOLUMN_AMOUNT]);
+                }
+                if (compare30[COUNTER_PRICE_MAX] > 2) {
+                    sayBu.append("涨了");
+                }
+                lastVoiceTime = System.currentTimeMillis();
+                SayUtil.say(sayBu.toString());
             }
+
+            System.out.println(String.format("%s 平台:%s\t币种:%s\t%s\t%s\t%s", String.format("%02d", calendar.get(Calendar.HOUR_OF_DAY)) + ":"
+                            + String.format("%02d", calendar.get(Calendar.MINUTE)) + ":"
+                            + String.format("%02d", calendar.get(Calendar.SECOND)), pt, bz, "当前最高价:" + String.format("%.2f", counter[innnerStartIndex][COUNTER_PRICE_MAX]), simpleConsole(compare5, 5), simpleConsole(compare30, 30)
+                    , "\t5秒内交易量:" + String.format("%.2f", total5[COUNTER_VOLUMN_MONEY])
+                    , "\t  交易量:" + String.format("%.2f", counter[innnerStartIndex][COUNTER_VOLUMN_MONEY])));
         }
     }
 
-    public void simpleConsole(double[] compare30, int sec) {
+    public String simpleConsole(double[] compare30, int sec) {
+        StringBuilder sb = new StringBuilder();
         if (compare30 != null) {
-            System.out.print("\t" + sec + "秒内正在");
+            sb.append("\t" + sec + "秒内正在");
             if (compare30[COUNTER_PRICE_MAX] > 0) {
-                System.out.print("涨↑");
+                if (compare30[COUNTER_PRICE_MAX] > 2) {
+                    sb.append("涨↑");
+                } else {
+                    sb.append("涨↗");
+                }
             } else if (compare30[COUNTER_PRICE_MAX] == 0) {
-                System.out.print("平-");
+                sb.append("平-");
             } else {
-                System.out.print("跌↓");
+                if (compare30[COUNTER_PRICE_MAX] < -2) {
+                    sb.append("跌↓");
+                } else {
+                    sb.append("跌↘");
+                }
             }
-            System.out.print("\t幅度:" + String.format("%.2f", compare30[COUNTER_PRICE_MAX]));
+            sb.append("\t幅度:" + String.format("%.2f", compare30[COUNTER_PRICE_MAX]));
         }
+        return sb.toString();
     }
 }

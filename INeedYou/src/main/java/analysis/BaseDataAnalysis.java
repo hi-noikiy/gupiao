@@ -13,11 +13,12 @@ import push.repository.PushInterface;
  */
 public abstract class BaseDataAnalysis {
 
-    private PushRegisterCenter center = PushRegisterCenter.getInstance();
+    private PushRegisterCenter center;
     private TRPushInterface trpush = new TRPushInterface();
 
     protected BaseDataAnalysis(String type) {
-        center.register(type, trpush);
+        center = PushRegisterCenter.getInstance(type);
+        center.register(trpush);
     }
 
     /**
@@ -26,7 +27,7 @@ public abstract class BaseDataAnalysis {
      * @param date
      * @return
      */
-    public abstract double getPrice(Date date);	
+    public abstract double getPrice(Date date);
 
     /**
      * 分析数据，并存好.

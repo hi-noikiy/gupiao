@@ -1,26 +1,5 @@
 package service.impl;
 
-import java.io.IOException;
-import java.net.URI;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import javax.websocket.ClientEndpoint;
-import javax.websocket.ContainerProvider;
-import javax.websocket.DeploymentException;
-import javax.websocket.EndpointConfig;
-import javax.websocket.OnClose;
-import javax.websocket.OnError;
-import javax.websocket.OnMessage;
-import javax.websocket.OnOpen;
-import javax.websocket.Session;
-import javax.websocket.WebSocketContainer;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import config.DictUtil;
 import dao.ClientRecordDao;
 import dao.TransactionRecordDao;
@@ -28,14 +7,26 @@ import dao.impl.ClientRecordDaoImpl;
 import dao.impl.TransactionRecordDaoImpl;
 import domain.ClientRecord;
 import domain.TransactionRecord;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import push.PushRegisterCenter;
 import service.SnatchService;
+
+import javax.websocket.*;
+import java.io.IOException;
+import java.net.URI;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 public class ChbtcSnatchServiceImpl implements SnatchService {
 
     private ClientRecordDao recordDao = new ClientRecordDaoImpl();
     private TransactionRecordDao transactionRecordDao = new TransactionRecordDaoImpl();
-    private PushRegisterCenter center = PushRegisterCenter.getInstance();
+    private PushRegisterCenter ltbCenter = PushRegisterCenter.getInstance(DictUtil.GOODSTYPE_LTB);
+    private PushRegisterCenter btbCenter = PushRegisterCenter.getInstance(DictUtil.GOODSTYPE_BTB);
+    private PushRegisterCenter ytbCenter = PushRegisterCenter.getInstance(DictUtil.GOODSTYPE_YTB);
 
     @Override
     public void sync() {
@@ -76,6 +67,8 @@ public class ChbtcSnatchServiceImpl implements SnatchService {
             // session.getBasicRemote().sendText("{'event':'addChannel','channel':'eth_cny_depth'}");
             // 发送成交记录
             session.getBasicRemote().sendText("{'event':'addChannel','channel':'eth_cny_lasttrades'}");
+            session.getBasicRemote().sendText("{'event':'addChannel','channel':'ltc_cny_lasttrades'}");
+            session.getBasicRemote().sendText("{'event':'addChannel','channel':'btc_cny_lasttrades'}");
             //session.getBasicRemote().sendText("{\"event\":\"addChannel\",\"channel\":\"chbtcethcny_kline_1min\"}");
             // session.getBasicRemote().sendText("{'event':'addChannel','channel':'btc_cny_lasttrades'}");
         }
@@ -94,14 +87,14 @@ public class ChbtcSnatchServiceImpl implements SnatchService {
         public void fenpei(String message) {
             JSONObject jsonT = new JSONObject(message);
             String channel = jsonT.getString("channel");
+            /** 获取当前时间. */
+            Date now = new Date();
             if ("eth_cny_depth".equals(channel)) {
                 if (1 == 1) return;
                 /** 获取买入委托记录. */
                 JSONArray asksArr = jsonT.getJSONArray("asks");
                 /** 获取卖出委托记录. */
                 JSONArray bidsArr = jsonT.getJSONArray("bids");
-                /** 获取当前时间. */
-                Date now = new Date();
 
                 ClientRecord record = new ClientRecord();
                 List<ClientRecord> cacheList = new ArrayList<>(50);
@@ -143,17 +136,16 @@ public class ChbtcSnatchServiceImpl implements SnatchService {
                     double price = item.getDouble("price");
                     String trade_type = item.getString("trade_type");
                     String type = item.getString("type");
-                    Date now = new Date();
 
                     TransactionRecord record = new TransactionRecord();
                     record.setAmount(amount);
                     record.setDirection(type);
-                    record.setGoodType(DictUtil.GOODSTYPE_BTB);
+                    record.setGoodType(DictUtil.GOODSTYPE_YTB);
                     record.setOpTime(now);
                     record.setPalType(DictUtil.PALTYPE_BTC);
                     record.setPrice(price);
                     cacheList.add(record);
-                    center.pushTR(record);
+                    ytbCenter.pushTR(record);
                 }
                 transactionRecordDao.insertBatch(cacheList);
                 cacheList.clear();
@@ -166,7 +158,6 @@ public class ChbtcSnatchServiceImpl implements SnatchService {
                     double price = item.getDouble("price");
                     String trade_type = item.getString("trade_type");
                     String type = item.getString("type");
-                    Date now = new Date();
 
                     TransactionRecord record = new TransactionRecord();
                     record.setAmount(amount);
@@ -176,7 +167,29 @@ public class ChbtcSnatchServiceImpl implements SnatchService {
                     record.setPalType(DictUtil.PALTYPE_BTC);
                     record.setPrice(price);
                     cacheList.add(record);
-                    center.pushBtc(record);
+                    btbCenter.pushTR(record);
+                }
+                transactionRecordDao.insertBatch(cacheList);
+                cacheList.clear();
+            } else if ("ltc_cny_lasttrades".equals(channel)) {
+                JSONArray dataArr = jsonT.getJSONArray("data");
+                List<TransactionRecord> cacheList = new ArrayList<TransactionRecord>(50);
+                for (int i = 0; i < dataArr.length(); i++) {
+                    JSONObject item = dataArr.getJSONObject(i);
+                    double amount = item.getDouble("amount");
+                    double price = item.getDouble("price");
+                    String trade_type = item.getString("trade_type");
+                    String type = item.getString("type");
+
+                    TransactionRecord record = new TransactionRecord();
+                    record.setAmount(amount);
+                    record.setDirection(type);
+                    record.setGoodType(DictUtil.GOODSTYPE_LTB);
+                    record.setOpTime(now);
+                    record.setPalType(DictUtil.PALTYPE_BTC);
+                    record.setPrice(price);
+                    cacheList.add(record);
+                    ltbCenter.pushTR(record);
                 }
                 transactionRecordDao.insertBatch(cacheList);
                 cacheList.clear();

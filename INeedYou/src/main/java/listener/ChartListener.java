@@ -27,7 +27,6 @@ import service.impl.TransactionServiceImpl;
  * Application Lifecycle Listener implementation class BuyRecordListener
  *
  */
-@WebListener
 public class ChartListener implements ServletContextListener {
 
 	public static ChartThread chartThread = new ChartThread();

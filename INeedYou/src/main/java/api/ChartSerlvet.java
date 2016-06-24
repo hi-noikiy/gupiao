@@ -28,14 +28,14 @@ public class ChartSerlvet {
         String type = mess.getString("type");
         switch (type) {
             case "detail":
-                PushRegisterCenter.getInstance().register(DictUtil.GOODSTYPE_YTB, trpush);
+                PushRegisterCenter.getInstance(DictUtil.GOODSTYPE_YTB).register(trpush);
                 break;
         }
     }
 
     @OnClose
     public void onClose() {
-        PushRegisterCenter.getInstance().unregsiter(trpush);
+        PushRegisterCenter.getInstance(DictUtil.GOODSTYPE_YTB).unregsiter(trpush);
         System.out.println("关闭websocket");
     }
 
@@ -50,7 +50,7 @@ public class ChartSerlvet {
     @OnError
     public void onError(Throwable e) {
         e.printStackTrace();
-        PushRegisterCenter.getInstance().unregsiter(trpush);
+        PushRegisterCenter.getInstance(DictUtil.GOODSTYPE_YTB).unregsiter(trpush);
         System.out.println("错误websocket");
     }
 

@@ -1,27 +1,20 @@
 package push;
 
-import java.io.IOException;
-import java.util.Collection;
-
-import javax.websocket.Session;
-
-import com.alibaba.fastjson.JSONObject;
-
-import config.DictUtil;
 import domain.TransactionRecord;
 import push.repository.PushDataRepository;
 import push.repository.PushInterface;
 import push.repository.RealtimePushDataRepository;
 
-public class PushRegisterCenter {
+import java.util.HashMap;
+import java.util.Map;
 
-    private static PushRegisterCenter center = new PushRegisterCenter();
+public class PushRegisterCenter {
 
     /**
      * 交易记录数据缓存仓库.
      */
     private PushDataRepository<TransactionRecord> detailRepo = new RealtimePushDataRepository<>();
-    private PushDataRepository<TransactionRecord> btcDetailRepo = new RealtimePushDataRepository<>();
+    private static Map<String, PushRegisterCenter> objMap = new HashMap<>();
 
     private PushRegisterCenter() {
     }
@@ -31,36 +24,36 @@ public class PushRegisterCenter {
      */
     public void start() {
         detailRepo.start();
-        btcDetailRepo.start();
     }
 
-    public static PushRegisterCenter getInstance() {
-        return center;
+    public static PushRegisterCenter getInstance(String type) {
+        if (type != null && !"".equals(type)) {
+            PushRegisterCenter pushRegisterCenter = objMap.get(type);
+            if (pushRegisterCenter == null) {
+                synchronized (PushRegisterCenter.class) {
+                    if (pushRegisterCenter == null) {
+                        pushRegisterCenter = new PushRegisterCenter();
+                        objMap.put(type, pushRegisterCenter);
+                    }
+                }
+            }
+            return pushRegisterCenter;
+        } else {
+            return null;
+        }
     }
 
     public void pushTR(TransactionRecord tr) {
         detailRepo.push(tr);
     }
 
-    public void pushBtc(TransactionRecord tr) {
-        btcDetailRepo.push(tr);
-    }
-
-
     /**
      * 注册监听.
      *
      * @param pushInterface
      */
-    public void register(String type, PushInterface pushInterface) {
-        switch (type) {
-            case DictUtil.GOODSTYPE_BTB:
-                btcDetailRepo.register(pushInterface);
-                break;
-            case DictUtil.GOODSTYPE_YTB:
-                detailRepo.register(pushInterface);
-                break;
-        }
+    public void register(PushInterface pushInterface) {
+        detailRepo.register(pushInterface);
     }
 
 
@@ -71,7 +64,6 @@ public class PushRegisterCenter {
      */
     public void unregsiter(PushInterface pushInterface) {
         detailRepo.unregister(pushInterface);
-        btcDetailRepo.unregister(pushInterface);
     }
 
 

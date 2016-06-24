@@ -1,5 +1,7 @@
 package util;
 
+import config.PrivateConfig;
+
 import java.io.IOException;
 
 /**
@@ -9,7 +11,7 @@ public class SayUtil {
 
     public static void say(String msg) {
         try {
-            Runtime.getRuntime().exec("cmd.exe /C wscript D:\\workspace\\codespace\\IdeaProject\\gupiao\\INeedYou\\src\\main\\resources\\say.vbs " + msg);
+            Runtime.getRuntime().exec("cmd.exe /C wscript  " + PrivateConfig.NOWPATH + "/say.vbs " + msg);
         } catch (IOException e) {
             e.printStackTrace();
         }
