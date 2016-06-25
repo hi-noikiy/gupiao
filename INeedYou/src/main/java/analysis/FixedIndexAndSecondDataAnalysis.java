@@ -1,4 +1,4 @@
-package analysis.impl;
+package analysis;
 
 import analysis.BaseDataAnalysis;
 import domain.TransactionRecord;
@@ -19,7 +19,7 @@ import java.util.*;
  * <p>
  * Created by huangming on 2016/6/17.
  */
-public class VolumeDataAnalysis extends BaseDataAnalysis {
+public class FixedIndexAndSecondDataAnalysis extends BaseDataAnalysis {
 
     /**
      * 缓存20秒的数据作为分析依据.
@@ -100,7 +100,7 @@ public class VolumeDataAnalysis extends BaseDataAnalysis {
      */
     private long lastVoiceTime = 0;
 
-    public VolumeDataAnalysis(String type) {
+    public FixedIndexAndSecondDataAnalysis(String type) {
         super(type);
         analysis();
     }

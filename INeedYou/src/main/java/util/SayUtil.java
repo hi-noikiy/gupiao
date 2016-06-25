@@ -9,9 +9,15 @@ import java.io.IOException;
  */
 public class SayUtil {
 
+    private static long lasttime = 0;
+
     public static void say(String msg) {
         try {
-            Runtime.getRuntime().exec("cmd.exe /C wscript  " + PrivateConfig.NOWPATH + "/say.vbs " + msg);
+            long c = lasttime - System.currentTimeMillis();
+            if (c == 0 || (c < -3000)) {
+                Runtime.getRuntime().exec("cmd.exe /C wscript  " + PrivateConfig.NOWPATH + "/say.vbs " + msg);
+                lasttime = System.currentTimeMillis();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
