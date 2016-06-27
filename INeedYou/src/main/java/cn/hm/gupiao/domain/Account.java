@@ -10,6 +10,24 @@ public class Account {
     private int id;
     private String username;
     private String palType;
+    private String sign;
+    private String accesskey;
+
+    public String getSign() {
+        return sign;
+    }
+
+    public void setSign(String sign) {
+        this.sign = sign;
+    }
+
+    public String getAccesskey() {
+        return accesskey;
+    }
+
+    public void setAccesskey(String accesskey) {
+        this.accesskey = accesskey;
+    }
 
     /**
      * 账户借款信息.
@@ -87,6 +105,16 @@ public class Account {
 
     @Override
     public String toString() {
-        return "Account [id=" + id + ", username=" + username + ", palType=" + palType + "]";
+        return "Account{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", palType='" + palType + '\'' +
+                ", sign='" + sign + '\'' +
+                ", accesskey='" + accesskey + '\'' +
+                ", borrow=" + borrow +
+                ", asset=" + asset +
+                ", free=" + free +
+                ", freezed=" + freezed +
+                '}';
     }
 }

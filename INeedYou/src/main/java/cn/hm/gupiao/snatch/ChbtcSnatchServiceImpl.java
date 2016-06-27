@@ -1,7 +1,10 @@
-package cn.hm.gupiao.service.impl;
+package cn.hm.gupiao.snatch;
 
+import cn.hm.gupiao.account.AccountManager;
+import cn.hm.gupiao.account.SimpleAccount;
 import cn.hm.gupiao.analysis.VariableIndexAndSecondDataAnalysis;
 import cn.hm.gupiao.analysis.feel.BaseIndexDataFeel;
+import cn.hm.gupiao.analysis.feel.ICanBuyDataFeel;
 import cn.hm.gupiao.analysis.index.BaseDataIndex;
 import cn.hm.gupiao.analysis.index.VolumnDataIndex;
 import cn.hm.gupiao.config.DictUtil;
@@ -9,21 +12,20 @@ import cn.hm.gupiao.dao.ClientRecordDao;
 import cn.hm.gupiao.dao.TransactionRecordDao;
 import cn.hm.gupiao.dao.impl.ClientRecordDaoImpl;
 import cn.hm.gupiao.dao.impl.TransactionRecordDaoImpl;
+import cn.hm.gupiao.domain.Account;
 import cn.hm.gupiao.domain.ClientRecord;
 import cn.hm.gupiao.domain.TransactionRecord;
+import cn.hm.gupiao.trade.SimpleOrder;
+import cn.hm.gupiao.trade.TrandeOperator;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import cn.hm.gupiao.push.PushRegisterCenter;
-import cn.hm.gupiao.service.SnatchService;
 
 import javax.websocket.*;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 public class ChbtcSnatchServiceImpl implements SnatchService {
 
@@ -37,7 +39,16 @@ public class ChbtcSnatchServiceImpl implements SnatchService {
     public void sync() {
         // center.getInstance(DictUtil.GOODSTYPE_LTB).start();
         // center.getInstance(DictUtil.GOODSTYPE_BTB).start();
-        center.getInstance(DictUtil.GOODSTYPE_YTB).register(new VariableIndexAndSecondDataAnalysis(Arrays.asList(new BaseDataIndex(), new VolumnDataIndex()), Arrays.asList(new BaseIndexDataFeel(DictUtil.GOODSTYPE_YTB, DictUtil.PALTYPE_BTC)))).start();
+
+        Account account = new Account();
+        account.setFree(new HashMap<>());
+        account.setUsername("aaa");
+        account.setBorrow(new HashMap<>());
+        account.getFree().put(DictUtil.GOODSTYPE_YTB, Double.valueOf(1000));
+        account.getFree().put(DictUtil.GOODSTYPE_CNY, Double.valueOf(1000));
+
+        center.getInstance(DictUtil.GOODSTYPE_YTB).register(new VariableIndexAndSecondDataAnalysis(Arrays.asList(new BaseDataIndex(), new VolumnDataIndex()),
+                Arrays.asList(new BaseIndexDataFeel(DictUtil.GOODSTYPE_YTB, DictUtil.PALTYPE_BTC), new ICanBuyDataFeel(new TrandeOperator(new AccountManager(account, new SimpleAccount()), new SimpleOrder()))))).start();
 
         /**
          * 实时同步Cnbtc网站的交易数据.
@@ -109,7 +120,7 @@ public class ChbtcSnatchServiceImpl implements SnatchService {
                     double amount = item.getDouble(1);
                     ClientRecord c = (ClientRecord) record.clone();
                     c.setAmount(amount);
-                    c.setDirection(DictUtil.TRADEDIRECT_IN);
+                    c.setDirection(DictUtil.TRADEDIRECT_BUY);
                     c.setGoodType(DictUtil.GOODSTYPE_YTB);
                     c.setOpTime(now);
                     c.setPalType(DictUtil.PALTYPE_BTC);
@@ -122,7 +133,7 @@ public class ChbtcSnatchServiceImpl implements SnatchService {
                     double amount = item.getDouble(1);
                     ClientRecord c = (ClientRecord) record.clone();
                     c.setAmount(amount);
-                    c.setDirection(DictUtil.TRADEDIRECT_OUT);
+                    c.setDirection(DictUtil.TRADEDIRECT_SELL);
                     c.setGoodType(DictUtil.GOODSTYPE_YTB);
                     c.setOpTime(now);
                     c.setPalType(DictUtil.PALTYPE_BTC);

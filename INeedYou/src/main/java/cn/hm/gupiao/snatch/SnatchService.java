@@ -1,4 +1,4 @@
-package cn.hm.gupiao.service;
+package cn.hm.gupiao.snatch;
 
 public interface SnatchService {
 	

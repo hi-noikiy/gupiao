@@ -25,11 +25,6 @@ public class VariableIndexAndSecondDataAnalysis extends BaseDataAnalysis {
     private final static int TIME_SIZE = 1000;
 
     /**
-     * 以下是各个指标.
-     **/
-    private int a = 0;
-
-    /**
      * 交易记录存储.
      */
     private ArrayList<TransactionRecord> tempList;
@@ -39,11 +34,6 @@ public class VariableIndexAndSecondDataAnalysis extends BaseDataAnalysis {
     private List<DataIndex> analysisList;
     private List<IndexDataFeel> feelList;
     private CircleArray<Map<String, Double>> indexDataList = new CircleArray<>(MAX_SIZE);
-
-    /**
-     * 声音提示间隔.
-     */
-    private long lastVoiceTime = 0;
 
     public VariableIndexAndSecondDataAnalysis(List<DataIndex> dList, List<IndexDataFeel> iList) {
         analysisList = new ArrayList<>();

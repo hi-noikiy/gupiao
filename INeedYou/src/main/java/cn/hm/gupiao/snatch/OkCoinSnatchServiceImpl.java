@@ -1,4 +1,4 @@
-package cn.hm.gupiao.service.impl;
+package cn.hm.gupiao.snatch;
 
 import cn.hm.gupiao.analysis.VariableIndexAndSecondDataAnalysis;
 import cn.hm.gupiao.analysis.feel.BaseIndexDataFeel;
@@ -13,7 +13,6 @@ import cn.hm.gupiao.domain.TransactionRecord;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import cn.hm.gupiao.push.PushRegisterCenter;
-import cn.hm.gupiao.service.SnatchService;
 
 import javax.websocket.*;
 import java.io.IOException;

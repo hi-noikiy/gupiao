@@ -106,16 +106,8 @@ public class BaseDataIndex implements DataIndex {
             if (beforeIndexData != null) {
                 BigDecimal lastMaxPrice = BigDecimal.valueOf(beforeIndexData.get(maxprice));
                 BigDecimal lastMinPrice = BigDecimal.valueOf(beforeIndexData.get(minprice));
-                if (maxPrice == null) {
-                    maxPrice = lastMaxPrice;
-                } else {
-                    maxPrice = maxPrice.max(lastMaxPrice);
-                }
-                if (minPrice == null) {
-                    minPrice = lastMinPrice;
-                } else {
-                    minPrice = minPrice.min(lastMinPrice);
-                }
+                maxPrice = lastMaxPrice;
+                minPrice = lastMinPrice;
             }
             if (beforeIndexData5 != null) {
                 maxPriceb5 = BigDecimal.valueOf(beforeIndexData5.get(maxprice));
