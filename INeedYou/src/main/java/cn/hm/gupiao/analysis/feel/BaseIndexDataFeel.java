@@ -24,13 +24,17 @@ public class BaseIndexDataFeel implements IndexDataFeel {
 
     @Override
     public void feel(Map<String, Double> map) {
-        double maxprice = map.get(BaseDataIndex.maxprice);
-        double incpriceb5 = map.get(BaseDataIndex.incpriceb5);
-        double incpriceb30 = map.get(BaseDataIndex.incpriceb30);
-        double volumnamount = map.get(BaseDataIndex.volumnamount);
-        double volummoney = map.get(BaseDataIndex.volumnmoney);
-        double volumnamount5 = map.get(VolumnDataIndex.volumnamount5);
-        double volumnamount30 = map.get(VolumnDataIndex.volumnamount30);
+        Double maxprice = map.get(BaseDataIndex.maxprice);
+        Double incpriceb5 = map.get(BaseDataIndex.incpriceb5);
+        Double incpriceb30 = map.get(BaseDataIndex.incpriceb30);
+        Double volumnamount = map.get(BaseDataIndex.volumnamount);
+        Double volummoney = map.get(BaseDataIndex.volumnmoney);
+        Double volumnamount5 = map.get(VolumnDataIndex.volumnamount5);
+        Double volumnamount30 = map.get(VolumnDataIndex.volumnamount30);
+
+        if (maxprice == null || incpriceb5 == null || volummoney == null) {
+            return;
+        }
 
         if (DictUtil.GOODSTYPE_LTB.equals(type) && maxprice < 26.3) {
             SayUtil.say("买" + b());

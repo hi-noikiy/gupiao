@@ -61,6 +61,10 @@ public class BaseDataIndex implements DataIndex {
         Map<String, Double> beforeIndexData5 = historyIndexData.getBefore(5);
         Map<String, Double> beforeIndexData30 = historyIndexData.getBefore(30);
 
+        if (beforeIndexData.size() == 0) {
+            return null;
+        }
+
         if (transactionRecords.size() > 0) {
             // 有记录时进行记录分析.
             for (TransactionRecord transactionRecord : transactionRecords) {
@@ -83,7 +87,7 @@ public class BaseDataIndex implements DataIndex {
 
                 times++;
             }
-            if (beforeIndexData != null) {
+            if (beforeIndexData != null && beforeIndexData.get(maxprice) != null) {
                 BigDecimal lastPrice = BigDecimal.valueOf(beforeIndexData.get(maxprice));
                 BigDecimal lastVolumn = BigDecimal.valueOf(beforeIndexData.get(volumnmoney));
                 // inc
@@ -93,27 +97,27 @@ public class BaseDataIndex implements DataIndex {
                 incVolumn = volumnMoney.subtract(lastVolumn);
                 pincVolumn = volumnMoney.subtract(lastVolumn).abs();
             }
-            if (beforeIndexData5 != null) {
+            if (beforeIndexData5 != null && beforeIndexData5.get(maxprice) != null) {
                 maxPriceb5 = BigDecimal.valueOf(beforeIndexData5.get(maxprice));
                 incPirceb5 = maxPrice.subtract(maxPriceb5);
             }
-            if (beforeIndexData30 != null) {
+            if (beforeIndexData30 != null && beforeIndexData30.get(maxprice) != null) {
                 maxPriceb30 = BigDecimal.valueOf(beforeIndexData30.get(maxprice));
                 incPirceb30 = maxPrice.subtract(maxPriceb30);
             }
         } else {
             // 无记录时赋予默认值.
-            if (beforeIndexData != null) {
+            if (beforeIndexData != null && beforeIndexData.get(maxprice) != null) {
                 BigDecimal lastMaxPrice = BigDecimal.valueOf(beforeIndexData.get(maxprice));
                 BigDecimal lastMinPrice = BigDecimal.valueOf(beforeIndexData.get(minprice));
                 maxPrice = lastMaxPrice;
                 minPrice = lastMinPrice;
             }
-            if (beforeIndexData5 != null) {
+            if (beforeIndexData5 != null && beforeIndexData5.get(maxprice) != null) {
                 maxPriceb5 = BigDecimal.valueOf(beforeIndexData5.get(maxprice));
                 incPirceb5 = maxPrice.subtract(maxPriceb5);
             }
-            if (beforeIndexData30 != null) {
+            if (beforeIndexData30 != null && beforeIndexData30.get(maxprice) != null) {
                 maxPriceb30 = BigDecimal.valueOf(beforeIndexData30.get(maxprice));
                 incPirceb30 = maxPrice.subtract(maxPriceb30);
             }

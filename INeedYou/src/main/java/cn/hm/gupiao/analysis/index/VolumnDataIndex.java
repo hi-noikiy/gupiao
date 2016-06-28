@@ -31,23 +31,23 @@ public class VolumnDataIndex implements DataIndex {
 
     @Override
     public Map<String, Double> execute(List<TransactionRecord> transactionRecords, CircleArray<Map<String, Double>> historyIndexData) {
+        BigDecimal totalVolumn = new BigDecimal(0);
         BigDecimal totalVolumn5 = new BigDecimal(0);
         BigDecimal totalVolumn30 = new BigDecimal(0);
         for (TransactionRecord transactionRecord : transactionRecords) {
-            totalVolumn5 = totalVolumn5.add(BigDecimal.valueOf(transactionRecord.getAmount()));
+            totalVolumn = totalVolumn.add(BigDecimal.valueOf(transactionRecord.getAmount()));
         }
+
         for (int i = 0; i < 5; i++) {
             Map<String, Double> map = historyIndexData.getBefore(i);
             if (map != null) {
-                BigDecimal bigDecimal = BigDecimal.valueOf(map.get(BaseDataIndex.volumnamount));
-                totalVolumn5 = totalVolumn5.add(bigDecimal);
+                totalVolumn5 = totalVolumn5.add(totalVolumn);
             }
         }
         for (int i = 0; i < 30; i++) {
             Map<String, Double> map = historyIndexData.getBefore(i);
             if (map != null) {
-                BigDecimal bigDecimal = BigDecimal.valueOf(map.get(BaseDataIndex.volumnamount));
-                totalVolumn30 = totalVolumn30.add(bigDecimal);
+                totalVolumn30 = totalVolumn30.add(totalVolumn);
             }
         }
         HashMap<String, Double> map = new HashMap<>();

@@ -1,5 +1,7 @@
-package cn.hm.gupiao.account;
+package cn.hm.gupiao.controller;
 
+import cn.hm.gupiao.account.AccountInterface;
+import cn.hm.gupiao.account.SimpleAccountImpl;
 import cn.hm.gupiao.domain.Account;
 
 /**
@@ -7,14 +9,15 @@ import cn.hm.gupiao.domain.Account;
  * <p>
  * Created by huangming on 2016/6/26.
  */
-public class AccountManager {
+public class AccountTradeController {
     private Account account;
+    private Account oldAccount;
     private AccountInterface accountInterface;
 
-    public AccountManager(Account account, AccountInterface accountInterface) {
+    public AccountTradeController(Account account, AccountInterface accountInterface) {
         this.account = account;
         this.accountInterface = accountInterface;
-        SimpleAccount.account = account;
+        SimpleAccountImpl.account = account;
     }
 
     public Double getFree(String goodType) {

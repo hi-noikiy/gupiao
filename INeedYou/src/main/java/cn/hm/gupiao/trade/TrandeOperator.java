@@ -1,7 +1,7 @@
 package cn.hm.gupiao.trade;
 
-import cn.hm.gupiao.account.AccountManager;
 import cn.hm.gupiao.config.DictUtil;
+import cn.hm.gupiao.controller.AccountTradeController;
 import cn.hm.gupiao.domain.TransactionRecord;
 
 import java.math.BigDecimal;
@@ -12,9 +12,9 @@ import java.math.BigDecimal;
 public class TrandeOperator {
 
     private OrderInterface orderInterface;
-    private AccountManager accountManager;
+    private AccountTradeController accountManager;
 
-    public TrandeOperator(AccountManager accountManager, OrderInterface orderInterface) {
+    public TrandeOperator(AccountTradeController accountManager, OrderInterface orderInterface) {
         this.accountManager = accountManager;
         this.orderInterface = orderInterface;
     }

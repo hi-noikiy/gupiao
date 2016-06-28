@@ -26,7 +26,7 @@ public class OkCoinSnatchServiceImpl implements SnatchService {
     private ClientRecordDao recordDao = new ClientRecordDaoImpl();
     private TransactionRecordDao transactionRecordDao = new TransactionRecordDaoImpl();
 
-    private String websocketUrl = "wss://real.okcoin.cn:10440/websocket/okcoinapi";
+    private String websocketUrl = "wss://real.okcoin.cn:10440/client/okcoinapi";
     private PushRegisterCenter centor = new PushRegisterCenter();
 
     @Override

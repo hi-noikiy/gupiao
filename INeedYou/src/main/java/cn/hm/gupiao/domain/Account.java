@@ -1,5 +1,6 @@
 package cn.hm.gupiao.domain;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -9,25 +10,8 @@ import java.util.Map;
 public class Account {
     private int id;
     private String username;
-    private String palType;
     private String sign;
     private String accesskey;
-
-    public String getSign() {
-        return sign;
-    }
-
-    public void setSign(String sign) {
-        this.sign = sign;
-    }
-
-    public String getAccesskey() {
-        return accesskey;
-    }
-
-    public void setAccesskey(String accesskey) {
-        this.accesskey = accesskey;
-    }
 
     /**
      * 账户借款信息.
@@ -46,6 +30,21 @@ public class Account {
      */
     private Map<String, Double> freezed = new HashMap<>();
 
+    public String getSign() {
+        return sign;
+    }
+
+    public void setSign(String sign) {
+        this.sign = sign;
+    }
+
+    public String getAccesskey() {
+        return accesskey;
+    }
+
+    public void setAccesskey(String accesskey) {
+        this.accesskey = accesskey;
+    }
 
     public int getId() {
         return id;
@@ -61,14 +60,6 @@ public class Account {
 
     public void setUsername(String username) {
         this.username = username;
-    }
-
-    public String getPalType() {
-        return palType;
-    }
-
-    public void setPalType(String palType) {
-        this.palType = palType;
     }
 
     public Map<String, Double> getBorrow() {
@@ -104,11 +95,15 @@ public class Account {
     }
 
     @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+
+    @Override
     public String toString() {
         return "Account{" +
                 "id=" + id +
                 ", username='" + username + '\'' +
-                ", palType='" + palType + '\'' +
                 ", sign='" + sign + '\'' +
                 ", accesskey='" + accesskey + '\'' +
                 ", borrow=" + borrow +

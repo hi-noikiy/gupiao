@@ -33,14 +33,67 @@ public class VariableIndexAndSecondDataAnalysis extends BaseDataAnalysis {
      */
     private List<DataIndex> analysisList;
     private List<IndexDataFeel> feelList;
+
+    private DataIndex[] analysisListCache;
+    private IndexDataFeel[] feelListCache;
+
+    /**
+     * 存储指标.
+     */
     private CircleArray<Map<String, Double>> indexDataList = new CircleArray<>(MAX_SIZE);
 
-    public VariableIndexAndSecondDataAnalysis(List<DataIndex> dList, List<IndexDataFeel> iList) {
-        analysisList = new ArrayList<>();
+    public VariableIndexAndSecondDataAnalysis() {
         tempList = new ArrayList<>(300);
+
+        analysisList = new ArrayList<>(10);
+        feelList = new ArrayList<>(10);
+        analysisListCache = new DataIndex[0];
+        feelListCache = new IndexDataFeel[0];
+
+        analysis();
+    }
+
+    public VariableIndexAndSecondDataAnalysis(List<DataIndex> dList) {
+        tempList = new ArrayList<>(300);
+
+        analysisList = dList;
+        feelList = new ArrayList<>(10);
+        analysisListCache = analysisList.toArray(new DataIndex[analysisList.size()]);
+        feelListCache = new IndexDataFeel[0];
+
+        analysis();
+    }
+
+    public VariableIndexAndSecondDataAnalysis(List<DataIndex> dList, List<IndexDataFeel> iList) {
+        tempList = new ArrayList<>(300);
+
         analysisList = dList;
         feelList = iList;
+
+        analysisListCache = analysisList.toArray(new DataIndex[analysisList.size()]);
+        feelListCache = feelList.toArray(new IndexDataFeel[feelList.size()]);
+
         analysis();
+    }
+
+    /**
+     * 注册指标.
+     *
+     * @param dataIndex
+     */
+    public void registerIndex(DataIndex dataIndex) {
+        analysisList.add(dataIndex);
+        analysisListCache = analysisList.toArray(new DataIndex[analysisList.size()]);
+    }
+
+    /**
+     * 注册感知.
+     *
+     * @param feel
+     */
+    public void registerFeel(IndexDataFeel feel) {
+        feelList.add(feel);
+        feelListCache = feelList.toArray(new IndexDataFeel[feelList.size()]);
     }
 
     @Override
@@ -49,10 +102,8 @@ public class VariableIndexAndSecondDataAnalysis extends BaseDataAnalysis {
     }
 
     public void analysis() {
-        /** 定时汇总数据. */
+        /** 定时汇总数据，并触发分析. */
         new Timer().schedule(new FetchSecondData(), 0, TIME_SIZE);
-        /** 启动定时决策. */
-        // TODO
     }
 
     /**
@@ -63,13 +114,18 @@ public class VariableIndexAndSecondDataAnalysis extends BaseDataAnalysis {
         public void run() {
             ArrayList<TransactionRecord> nowRecordList = VariableIndexAndSecondDataAnalysis.this.tempList;
             tempList = new ArrayList<>(300);
+
             // 分析器，记录本身分析时间.
             Map<String, Double> anaIndexMap = new HashMap<>();
-            for (DataIndex dataIndex : analysisList) {
-                anaIndexMap.putAll(dataIndex.execute(nowRecordList, indexDataList));
+            for (DataIndex dataIndex : analysisListCache) {
+                Map<String, Double> map = dataIndex.execute(nowRecordList, indexDataList);
+                if (map != null)
+                    anaIndexMap.putAll(map);
             }
-            for (IndexDataFeel feel : feelList) {
-                feel.feel(anaIndexMap);
+            if (anaIndexMap.size() > 0) {
+                for (IndexDataFeel feel : feelListCache) {
+                    feel.feel(anaIndexMap);
+                }
             }
             indexDataList.add(anaIndexMap);
         }

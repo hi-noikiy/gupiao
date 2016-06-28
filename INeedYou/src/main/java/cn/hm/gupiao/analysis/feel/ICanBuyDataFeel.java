@@ -23,8 +23,12 @@ public class ICanBuyDataFeel implements IndexDataFeel {
 
     @Override
     public void feel(Map<String, Double> map) {
-        double maxprice = map.get(BaseDataIndex.maxprice);
-        double minprice = map.get(BaseDataIndex.minprice);
+        Double maxprice = map.get(BaseDataIndex.maxprice);
+        Double minprice = map.get(BaseDataIndex.minprice);
+
+        if (maxprice == null || minprice == null) {
+            return;
+        }
 
         if (minprice < 26.3 && minprice > 0) {
             TransactionRecord t = new TransactionRecord();

@@ -26,7 +26,7 @@ public class ChartSerlvet {
         String type = mess.getString("type");
         switch (type) {
             case "detail":
-                //PushRegisterCenter.getInstance(DictUtil.GOODSTYPE_YTB).register(trpush);
+                //PushRegisterCenter.getInstance(DictUtil.GOODSTYPE_YTB).registerFeel(trpush);
                 break;
         }
     }
