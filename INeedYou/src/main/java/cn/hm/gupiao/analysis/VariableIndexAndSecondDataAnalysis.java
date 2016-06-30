@@ -22,7 +22,7 @@ public class VariableIndexAndSecondDataAnalysis extends BaseDataAnalysis {
     /**
      * 时间间隔.
      */
-    private final static int TIME_SIZE = 1000;
+    private int TIME_SIZE = 1000;
 
     /**
      * 交易记录存储.
@@ -49,6 +49,19 @@ public class VariableIndexAndSecondDataAnalysis extends BaseDataAnalysis {
         feelList = new ArrayList<>(10);
         analysisListCache = new DataIndex[0];
         feelListCache = new IndexDataFeel[0];
+
+        analysis();
+    }
+
+    public VariableIndexAndSecondDataAnalysis(int time_size) {
+        tempList = new ArrayList<>(300);
+
+        analysisList = new ArrayList<>(10);
+        feelList = new ArrayList<>(10);
+        analysisListCache = new DataIndex[0];
+        feelListCache = new IndexDataFeel[0];
+
+        TIME_SIZE = time_size;
 
         analysis();
     }

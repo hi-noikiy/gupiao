@@ -24,6 +24,7 @@ public class BaseDataIndex implements DataIndex {
     public static final String maxpriceb5 = "maxprice5";
     public static final String incpriceb5 = "maxprice5";
 
+
     public BaseDataIndex() {
     }
 
@@ -47,6 +48,7 @@ public class BaseDataIndex implements DataIndex {
 
         BigDecimal maxPriceb5 = new BigDecimal(0);
         BigDecimal maxPriceb30 = new BigDecimal(0);
+
         BigDecimal incPirceb5 = new BigDecimal(0);
         BigDecimal incPirceb30 = new BigDecimal(0);
 
@@ -108,10 +110,8 @@ public class BaseDataIndex implements DataIndex {
         } else {
             // 无记录时赋予默认值.
             if (beforeIndexData != null && beforeIndexData.get(maxprice) != null) {
-                BigDecimal lastMaxPrice = BigDecimal.valueOf(beforeIndexData.get(maxprice));
-                BigDecimal lastMinPrice = BigDecimal.valueOf(beforeIndexData.get(minprice));
-                maxPrice = lastMaxPrice;
-                minPrice = lastMinPrice;
+                maxPrice = BigDecimal.valueOf(beforeIndexData.get(maxprice));
+                minPrice = BigDecimal.valueOf(beforeIndexData.get(minprice));
             }
             if (beforeIndexData5 != null && beforeIndexData5.get(maxprice) != null) {
                 maxPriceb5 = BigDecimal.valueOf(beforeIndexData5.get(maxprice));

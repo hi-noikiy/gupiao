@@ -5,6 +5,7 @@ import cn.hm.gupiao.analysis.VariableIndexAndSecondDataAnalysis;
 import cn.hm.gupiao.analysis.feel.BaseIndexDataFeel;
 import cn.hm.gupiao.analysis.feel.ICanBuyDataFeel;
 import cn.hm.gupiao.analysis.index.BaseDataIndex;
+import cn.hm.gupiao.analysis.index.MACDDataIndex;
 import cn.hm.gupiao.analysis.index.VolumnDataIndex;
 import cn.hm.gupiao.client.ChbtcClient;
 import cn.hm.gupiao.config.DictUtil;
@@ -56,6 +57,7 @@ public class ChbtcSnatchServiceImpl implements SnatchService {
         /** 配置指标. */
         analysis.registerIndex(new BaseDataIndex());
         analysis.registerIndex(new VolumnDataIndex());
+        analysis.registerIndex(new MACDDataIndex());
 
         /** 配置感知. */
         analysis.registerFeel(new BaseIndexDataFeel(DictUtil.GOODSTYPE_YTB, DictUtil.PALTYPE_BTC));
