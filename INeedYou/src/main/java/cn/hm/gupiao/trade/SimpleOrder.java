@@ -12,7 +12,6 @@ import java.math.BigDecimal;
 public class SimpleOrder implements OrderInterface {
     @Override
     public boolean sell(TransactionRecord transactionRecord) {
-        System.out.println(transactionRecord);
         Double aDouble = SimpleAccountImpl.account.getFree().get(transactionRecord.getGoodType());
         BigDecimal money = BigDecimal.valueOf(transactionRecord.getAmount()).multiply(BigDecimal.valueOf(transactionRecord.getPrice()));
         BigDecimal amount = BigDecimal.valueOf(transactionRecord.getAmount());
@@ -30,7 +29,6 @@ public class SimpleOrder implements OrderInterface {
 
     @Override
     public boolean buy(TransactionRecord transactionRecord) {
-        System.out.println(transactionRecord);
         Double aDouble = SimpleAccountImpl.account.getFree().get(transactionRecord.getGoodType());
         BigDecimal money = BigDecimal.valueOf(transactionRecord.getAmount()).multiply(BigDecimal.valueOf(transactionRecord.getPrice()));
         BigDecimal amount = BigDecimal.valueOf(transactionRecord.getAmount());

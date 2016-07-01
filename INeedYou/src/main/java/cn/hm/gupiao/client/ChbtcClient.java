@@ -1,10 +1,6 @@
 package cn.hm.gupiao.client;
 
 import cn.hm.gupiao.config.DictUtil;
-import cn.hm.gupiao.dao.ClientRecordDao;
-import cn.hm.gupiao.dao.TransactionRecordDao;
-import cn.hm.gupiao.dao.impl.ClientRecordDaoImpl;
-import cn.hm.gupiao.dao.impl.TransactionRecordDaoImpl;
 import cn.hm.gupiao.domain.ClientRecord;
 import cn.hm.gupiao.domain.TransactionRecord;
 import cn.hm.gupiao.push.PushRegisterCenter;
@@ -14,9 +10,7 @@ import org.json.JSONObject;
 import javax.websocket.*;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 /**
  * Created by huangming on 2016/6/27.
@@ -24,8 +18,6 @@ import java.util.List;
 @ClientEndpoint
 public class ChbtcClient {
 
-    private ClientRecordDao recordDao = new ClientRecordDaoImpl();
-    private TransactionRecordDao transactionRecordDao = new TransactionRecordDaoImpl();
     private PushRegisterCenter center;
 
     public ChbtcClient(PushRegisterCenter center) {
@@ -49,8 +41,8 @@ public class ChbtcClient {
         // session.getBasicRemote().sendText("{'event':'addChannel','channel':'eth_cny_depth'}");
         // 发送成交记录
         session.getBasicRemote().sendText("{'event':'addChannel','channel':'eth_cny_lasttrades'}");
-        session.getBasicRemote().sendText("{'event':'addChannel','channel':'ltc_cny_lasttrades'}");
-        session.getBasicRemote().sendText("{'event':'addChannel','channel':'btc_cny_lasttrades'}");
+        // session.getBasicRemote().sendText("{'event':'addChannel','channel':'ltc_cny_lasttrades'}");
+        // session.getBasicRemote().sendText("{'event':'addChannel','channel':'btc_cny_lasttrades'}");
         //session.getBasicRemote().sendText("{\"event\":\"addChannel\",\"channel\":\"chbtcethcny_kline_1min\"}");
         // session.getBasicRemote().sendText("{'event':'addChannel','channel':'btc_cny_lasttrades'}");
     }
@@ -79,7 +71,6 @@ public class ChbtcClient {
             JSONArray bidsArr = jsonT.getJSONArray("bids");
 
             ClientRecord record = new ClientRecord();
-            List<ClientRecord> cacheList = new ArrayList<>(50);
             for (int i = 0; i < asksArr.length(); i++) {
                 JSONArray item = asksArr.getJSONArray(i);
                 double price = item.getDouble(0);
@@ -91,7 +82,6 @@ public class ChbtcClient {
                 c.setOpTime(now);
                 c.setPalType(DictUtil.PALTYPE_BTC);
                 c.setPrice(price);
-                cacheList.add(c);
             }
             for (int i = 0; i < bidsArr.length(); i++) {
                 JSONArray item = bidsArr.getJSONArray(i);
@@ -104,14 +94,9 @@ public class ChbtcClient {
                 c.setOpTime(now);
                 c.setPalType(DictUtil.PALTYPE_BTC);
                 c.setPrice(price);
-                cacheList.add(c);
             }
-            recordDao.insertBatch(cacheList);
-            cacheList.clear();
-            cacheList = null;
         } else if ("eth_cny_lasttrades".equals(channel)) {
             JSONArray dataArr = jsonT.getJSONArray("data");
-            List<TransactionRecord> cacheList = new ArrayList<TransactionRecord>(50);
             for (int i = 0; i < dataArr.length(); i++) {
                 JSONObject item = dataArr.getJSONObject(i);
                 double amount = item.getDouble("amount");
@@ -126,14 +111,10 @@ public class ChbtcClient {
                 record.setOpTime(now);
                 record.setPalType(DictUtil.PALTYPE_BTC);
                 record.setPrice(price);
-                cacheList.add(record);
                 center.getInstance(DictUtil.GOODSTYPE_YTB).push(record);
             }
-            transactionRecordDao.insertBatch(cacheList);
-            cacheList.clear();
         } else if ("btc_cny_lasttrades".equals(channel)) {
             JSONArray dataArr = jsonT.getJSONArray("data");
-            List<TransactionRecord> cacheList = new ArrayList<TransactionRecord>(50);
             for (int i = 0; i < dataArr.length(); i++) {
                 JSONObject item = dataArr.getJSONObject(i);
                 double amount = item.getDouble("amount");
@@ -148,14 +129,10 @@ public class ChbtcClient {
                 record.setOpTime(now);
                 record.setPalType(DictUtil.PALTYPE_BTC);
                 record.setPrice(price);
-                cacheList.add(record);
                 center.getInstance(DictUtil.GOODSTYPE_BTB).push(record);
             }
-            transactionRecordDao.insertBatch(cacheList);
-            cacheList.clear();
         } else if ("ltc_cny_lasttrades".equals(channel)) {
             JSONArray dataArr = jsonT.getJSONArray("data");
-            List<TransactionRecord> cacheList = new ArrayList<TransactionRecord>(50);
             for (int i = 0; i < dataArr.length(); i++) {
                 JSONObject item = dataArr.getJSONObject(i);
                 double amount = item.getDouble("amount");
@@ -170,11 +147,8 @@ public class ChbtcClient {
                 record.setOpTime(now);
                 record.setPalType(DictUtil.PALTYPE_BTC);
                 record.setPrice(price);
-                cacheList.add(record);
                 center.getInstance(DictUtil.GOODSTYPE_LTB).push(record);
             }
-            transactionRecordDao.insertBatch(cacheList);
-            cacheList.clear();
         } else {
             System.out.println(message);
         }

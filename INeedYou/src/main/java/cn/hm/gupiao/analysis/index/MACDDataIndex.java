@@ -6,10 +6,7 @@ import cn.hm.gupiao.util.CircleArray;
 import cn.hm.gupiao.util.GupiaoUtil;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.DoubleSummaryStatistics;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by huangming on 2016/6/30.
@@ -18,10 +15,6 @@ public class MACDDataIndex implements DataIndex {
 
 
     public static final String lastprice = "lastprice";
-
-    private CircleArray<Double> ema = new CircleArray<Double>(2);
-    private CircleArray<Double> dea = new CircleArray<Double>(2);
-    private CircleArray<Double> dif = new CircleArray<Double>(2);
 
     @Override
     public String getName() {
@@ -55,10 +48,31 @@ public class MACDDataIndex implements DataIndex {
         int st = 12;
         int lg = 26;
         int mid = 9;
-        for (Map<String, Double> map : historyIndexData) {
-            map.get(lastprice);
+        int index = 0;
+        if (historyIndexData.size() > lg * 2) {
+            for (Map<String, Double> map : historyIndexData) {
+                if (index >= lg * 2) {
+                    break;
+                }
+                if (map != null) {
+                    Double aDouble = map.get(lastprice);
+                    if (aDouble == null) {
+                        list.add(Double.valueOf(0));
+                    } else {
+                        list.add(aDouble);
+                    }
+                } else {
+                    list.add(Double.valueOf(0));
+                }
+                index++;
+            }
+
+            HashMap<String, Double> macd = GupiaoUtil.getMACD(list, st, lg, mid);
+            System.out.println(macd);
         }
 
-        return null;
+        HashMap<String, Double> map = new HashMap();
+        map.put(lastprice, lasPrice.doubleValue());
+        return map;
     }
 }

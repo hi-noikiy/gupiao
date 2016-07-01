@@ -23,9 +23,9 @@ import java.util.*;
 
 public class ChbtcSnatchServiceImpl implements SnatchService {
 
-    private String uri = "wss://kline.chbtc.com/client";
+    private String uri = "wss://kline.chbtc.com/websocket";
     private PushRegisterCenter center = new PushRegisterCenter();
-    private VariableIndexAndSecondDataAnalysis analysis = new VariableIndexAndSecondDataAnalysis();
+    private VariableIndexAndSecondDataAnalysis analysis = new VariableIndexAndSecondDataAnalysis(60000);
 
     @Override
     public void sync() {
@@ -53,6 +53,7 @@ public class ChbtcSnatchServiceImpl implements SnatchService {
         account.getFree().put(DictUtil.GOODSTYPE_CNY, Double.valueOf(1000));
 
         PushDataRepository instance = center.getInstance(DictUtil.GOODSTYPE_YTB);
+        PushDataRepository ltbinstance = center.getInstance(DictUtil.GOODSTYPE_LTB);
 
         /** 配置指标. */
         analysis.registerIndex(new BaseDataIndex());
@@ -61,9 +62,12 @@ public class ChbtcSnatchServiceImpl implements SnatchService {
 
         /** 配置感知. */
         analysis.registerFeel(new BaseIndexDataFeel(DictUtil.GOODSTYPE_YTB, DictUtil.PALTYPE_BTC));
-        analysis.registerFeel(new ICanBuyDataFeel(new TrandeOperator(new AccountTradeController(account, new SimpleAccountImpl()), new SimpleOrder())));
+        // analysis.registerFeel(new ICanBuyDataFeel(new TrandeOperator(new AccountTradeController(account, new SimpleAccountImpl()), new SimpleOrder())));
+
+        instance.register(analysis);
 
         instance.start();
+        ltbinstance.start();
     }
 
 }
