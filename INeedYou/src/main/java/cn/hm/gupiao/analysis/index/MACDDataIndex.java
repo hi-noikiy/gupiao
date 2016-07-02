@@ -43,12 +43,14 @@ public class MACDDataIndex implements DataIndex {
             }
         }
 
-        List<Double> list = new ArrayList<>(50);
 
         int st = 12;
         int lg = 26;
         int mid = 9;
-        int index = 0;
+        int index = 1;
+
+        double[] list = new double[lg * 2];
+        list[0] = lasPrice.doubleValue();
         if (historyIndexData.size() > lg * 2) {
             for (Map<String, Double> map : historyIndexData) {
                 if (index >= lg * 2) {
@@ -57,17 +59,17 @@ public class MACDDataIndex implements DataIndex {
                 if (map != null) {
                     Double aDouble = map.get(lastprice);
                     if (aDouble == null) {
-                        list.add(Double.valueOf(0));
+                        list[index] = Double.valueOf(0);
                     } else {
-                        list.add(aDouble);
+                        list[index] = aDouble;
                     }
                 } else {
-                    list.add(Double.valueOf(0));
+                    list[index] = Double.valueOf(0);
                 }
                 index++;
             }
 
-            HashMap<String, Double> macd = GupiaoUtil.getMACD(list, st, lg, mid);
+            double macd = GupiaoUtil.macd(list, st, lg, mid);
             System.out.println(macd);
         }
 

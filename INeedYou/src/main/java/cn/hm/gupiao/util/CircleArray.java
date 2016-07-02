@@ -135,19 +135,26 @@ public class CircleArray<T> implements Collection<T> {
 
     private class Ltc implements Iterator<T> {
         private int innertIndex;
+        private int endIndex;
 
         public Ltc() {
-            innertIndex = start_index;
+            if (capSize == nowSize) {
+                innertIndex = start_index;
+                endIndex = start_index + nowSize;
+            } else {
+                innertIndex = 0;
+                endIndex = nowSize;
+            }
         }
 
         @Override
         public boolean hasNext() {
-            return innertIndex > start_index - capSize;
+            return innertIndex != -1 && (innertIndex < endIndex);
         }
 
         @Override
         public T next() {
-            return (T) element[(innertIndex-- + capSize) % capSize];
+            return (T) element[innertIndex++ % capSize];
         }
     }
 

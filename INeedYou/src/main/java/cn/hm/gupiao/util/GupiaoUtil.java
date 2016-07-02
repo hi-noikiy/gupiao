@@ -11,7 +11,6 @@ import java.util.List;
 public class GupiaoUtil {
 
     private double[] ema = new double[100];
-    private double[] dea = new double[100];
 
 
     public static double ema(double[] arr, int e) {
@@ -19,25 +18,46 @@ public class GupiaoUtil {
     }
 
     public static double ema(double[] arr, int start, int e) {
+        // 循环解法.
+        double result = 0;
+        for (int i = 0; i < e; i++) {
+            double v = arr[start + e - i - 1];
+            double ed = i + 1;
+            double f = 2.0 / (ed + 1.0);
+            double p = (ed - 1.0) / (ed + 1.0);
+            result = (f * v + p * result);
+        }
+
+        /*
+        // 递归解法
         if (e == 1) {
             return arr[start];
         }
-        return (2 * arr[e - 1 + start] + (e - 1) * ema(arr, start, e - 1)) / (e + 1);
+
+        double v = arr[start];
+        double ed = e;
+        double f = 2.0 / (ed + 1.0);
+        double p = (ed - 1.0) / (ed + 1.0);
+        return f * v + p * (ema2(arr, start + 1, e - 1));
+        */
+        return result;
     }
 
     public static double macd(double[] arr, int st, int lg, int mid) {
         double ema12 = ema(arr, st);
-        double ema24 = ema(arr, lg);
-        double dif = ema12 - ema24;
+        double ema26 = ema(arr, lg);
+        double dif = ema12 - ema26;
         double[] deaArr = new double[mid + 1];
 
         deaArr[0] = dif;
-        for (int i = 1; i >= mid; i++) {
+        for (int i = 1; i <= mid; i++) {
             double bema12 = ema(arr, i, st);
-            double bema24 = ema(arr, i, lg);
-            deaArr[i] = bema12 - bema24;
+            double bema26 = ema(arr, i, lg);
+            deaArr[i] = bema12 - bema26;
         }
         double dea = ema(deaArr, mid);
+        System.out.println(Arrays.toString(arr));
+        System.out.println(Arrays.toString(deaArr));
         System.out.print("dif:" + dif + "\t dea:" + dea + "\t macd:");
         return 2 * (dif - dea);
     }
@@ -103,7 +123,19 @@ public class GupiaoUtil {
         double xx = getEXPMA(Arrays.asList(new Double[]{Double.valueOf(1), Double.valueOf(2), Double.valueOf(3), Double.valueOf(4)}), 4);
         System.out.println(xx);
 
+        double[] priceHistory3 = new double[]{28.07, 28.10, 28.09, 28.09, 28.10};
+        System.out.println(ema(priceHistory, 5));
+
         double xxx = ema(new double[]{1, 2, 3, 4}, 4);
         System.out.println(xxx);
+
+        // double sum = 1.0 / 3.0 * 28.22 + 4.0 / 15.0 * 28.11 + 1.0 / 5.0 * 28.10 + 2.0 / 15.0 * 28.11 + 1.0 / 15.0 * 28.06;
+        double sum = 1.0 / 3.0 * 28.22 + 4.0 / 15.0 * 28.22 + 1.0 / 5.0 * 28.22 + 2.0 / 15.0 * 28.11 + 1.0 / 15.0 * 28.10;
+        System.out.println(sum);
+
+        double xxx1 = ema(new double[]{1, 2, 3, 4}, 4);
+        double pp = ema(new double[]{28.22, 28.22, 28.22, 28.11, 28.10, 28.11, 28.06}, 0, 5);
+        System.out.print(pp);
+
     }
 }
