@@ -1,33 +1,35 @@
 package cn.hm.gupiao.snatch;
 
-import cn.hm.gupiao.analysis.VariableIndexAndSecondDataAnalysis;
-import cn.hm.gupiao.analysis.feel.BaseIndexDataFeel;
-import cn.hm.gupiao.analysis.index.BaseDataIndex;
-import cn.hm.gupiao.analysis.index.VolumnDataIndex;
+import cn.hm.gupiao.account.SimpleAccountImpl;
+import cn.hm.gupiao.snatch.analysis.VariableIndexAndSecondDataAnalysis;
+import cn.hm.gupiao.snatch.analysis.feel.BaseIndexDataFeel;
+import cn.hm.gupiao.snatch.analysis.feel.ICanBuyDataFeel;
+import cn.hm.gupiao.snatch.analysis.index.BaseDataIndex;
+import cn.hm.gupiao.snatch.analysis.index.MACDDataIndex;
+import cn.hm.gupiao.snatch.analysis.index.VolumnDataIndex;
+import cn.hm.gupiao.snatch.client.OkCoinClient;
 import cn.hm.gupiao.config.DictUtil;
-import cn.hm.gupiao.dao.ClientRecordDao;
-import cn.hm.gupiao.dao.TransactionRecordDao;
-import cn.hm.gupiao.dao.impl.ClientRecordDaoImpl;
-import cn.hm.gupiao.dao.impl.TransactionRecordDaoImpl;
-import cn.hm.gupiao.domain.TransactionRecord;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import cn.hm.gupiao.trade.AccountTradeController;
+import cn.hm.gupiao.domain.Account;
+import cn.hm.gupiao.push.repository.PushDataRepository;
+import cn.hm.gupiao.trade.SimpleOrder;
+import cn.hm.gupiao.trade.TrandeOperator;
 import cn.hm.gupiao.push.PushRegisterCenter;
 
 import javax.websocket.*;
 import java.io.IOException;
 import java.net.URI;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.Date;
+import java.util.HashMap;
 
 public class OkCoinSnatchServiceImpl implements SnatchService {
 
-    private ClientRecordDao recordDao = new ClientRecordDaoImpl();
-    private TransactionRecordDao transactionRecordDao = new TransactionRecordDaoImpl();
-
     private String websocketUrl = "wss://real.okcoin.cn:10440/client/okcoinapi";
-    private PushRegisterCenter centor = new PushRegisterCenter();
+    private PushRegisterCenter center = new PushRegisterCenter();
+    private VariableIndexAndSecondDataAnalysis analysis;
+
+    public OkCoinSnatchServiceImpl(int mill) {
+        analysis = new VariableIndexAndSecondDataAnalysis(mill);
+    }
 
     @Override
     public void sync() {
@@ -36,106 +38,38 @@ public class OkCoinSnatchServiceImpl implements SnatchService {
          */
         // centor.getInstance(DictUtil.GOODSTYPE_YTB).start();
         // centor.getInstance(DictUtil.GOODSTYPE_BTB).start();
-        centor.getInstance(DictUtil.GOODSTYPE_LTB).register(new VariableIndexAndSecondDataAnalysis(Arrays.asList(new BaseDataIndex(), new VolumnDataIndex()), Arrays.asList(new BaseIndexDataFeel(DictUtil.GOODSTYPE_LTB, DictUtil.PALTYPE_OKCOIN)))).start();
-
-        /**
-         * 实时同步Cnbtc网站的交易数据.
-         */
         WebSocketContainer container = ContainerProvider.getWebSocketContainer();
-        String uri = websocketUrl;
         try {
             container.setAsyncSendTimeout(5000);
-            container.connectToServer(new MyClient(), URI.create(uri));
+            container.connectToServer(new OkCoinClient(center), URI.create(websocketUrl));
         } catch (DeploymentException e) {
             throw new Error(e);
         } catch (IOException e) {
             throw new Error(e);
         }
-    }
 
-    @ClientEndpoint
-    public class MyClient {
+        Account account = new Account();
+        account.setFree(new HashMap<>());
+        account.setUsername("aaa");
+        account.setBorrow(new HashMap<>());
+        account.getFree().put(DictUtil.GOODSTYPE_CNY, Double.valueOf(10000));
 
-        @OnOpen
-        public void onOpen(Session session, EndpointConfig config) throws IOException {
-            System.out.println("交易日志记录开启!");
-            session.getBasicRemote().sendText("{'event':'addChannel','channel':'ok_sub_spotcny_btc_trades','parameters':{'api_key':'c821db84-6fbd-11e4-a9e3-c86000d26d7c','sign':'4CBB1D1518F8BEE4040CE6B14F225C82'}}");
-            session.getBasicRemote().sendText("{'event':'addChannel','channel':'ok_sub_spotcny_ltc_trades','parameters':{'api_key':'c821db84-6fbd-11e4-a9e3-c86000d26d7c','sign':'4CBB1D1518F8BEE4040CE6B14F225C82'}}");
-        }
+        PushDataRepository instance = center.getInstance(DictUtil.GOODSTYPE_YTB);
+        PushDataRepository ltbinstance = center.getInstance(DictUtil.GOODSTYPE_LTB);
 
-        @OnMessage
-        public void onMessage(ByteBuffer message) {
-            fenpei(new String(message.array()));
-        }
+        /** 配置指标. */
+        analysis.registerIndex(new BaseDataIndex());
+        analysis.registerIndex(new VolumnDataIndex());
+        analysis.registerIndex(new MACDDataIndex());
 
-        @OnMessage
-        public void onMessage(String message) {
-            fenpei(message);
-        }
+        /** 配置感知. */
+        analysis.registerFeel(new BaseIndexDataFeel(DictUtil.GOODSTYPE_YTB, DictUtil.PALTYPE_BTC));
+        analysis.registerFeel(new ICanBuyDataFeel(new TrandeOperator(new AccountTradeController(account, new SimpleAccountImpl()), new SimpleOrder())));
 
-        public void fenpei(String message) {
-            JSONArray jsonArr = new JSONArray(message);
-            for (int index = 0; index < jsonArr.length(); index++) {
-                JSONObject jsonT = jsonArr.getJSONObject(index);
-                String channel = jsonT.getString("channel");
-                Date now = new Date();
-                if ("ok_sub_spotcny_btc_trades".equals(channel)) {
-                    if (!jsonT.isNull("success")) {
-                        if ("true".equals(jsonT.get("success"))) {
-                            System.out.println("登陆成功!");
-                        }
-                    } else if (!jsonT.isNull("data")) {
-                        JSONArray dataArr = jsonT.getJSONArray("data");
-                        for (int i = 0; i < dataArr.length(); i++) {
-                            JSONArray item = dataArr.getJSONArray(i);
-                            TransactionRecord record = new TransactionRecord();
-                            record.setAmount(item.getDouble(2));
-                            record.setDirection(item.getString(4));
-                            record.setGoodType(DictUtil.GOODSTYPE_BTB);
-                            record.setOpTime(now);
-                            record.setPalType(DictUtil.PALTYPE_OKCOIN);
-                            record.setPrice(item.getDouble(1));
-                            centor.getInstance(DictUtil.GOODSTYPE_BTB).push(record);
-                        }
-                    } else {
-                        System.out.println(message);
-                    }
-                } else {
-                    if (!jsonT.isNull("success")) {
-                        if ("true".equals(jsonT.get("success"))) {
-                            System.out.println("登陆成功!");
-                        }
-                    } else if (!jsonT.isNull("data")) {
-                        JSONArray dataArr = jsonT.getJSONArray("data");
-                        for (int i = 0; i < dataArr.length(); i++) {
-                            JSONArray item = dataArr.getJSONArray(i);
-                            TransactionRecord record = new TransactionRecord();
-                            record.setAmount(item.getDouble(2));
-                            record.setDirection(item.getString(4));
-                            record.setGoodType(DictUtil.GOODSTYPE_LTB);
-                            record.setOpTime(now);
-                            record.setPalType(DictUtil.PALTYPE_OKCOIN);
-                            record.setPrice(item.getDouble(1));
-                            centor.getInstance(DictUtil.GOODSTYPE_LTB).push(record);
-                        }
-                    } else {
-                        System.out.println(message);
-                    }
-                }
-            }
-        }
+        ltbinstance.register(analysis);
 
-        @OnClose
-        public void onClose() {
-            System.out.println("交易日志记录关闭!");
-            sync();
-        }
-
-        @OnError
-        public void onError(Throwable t) {
-            System.out.println("交易日志记录关闭!");
-            t.printStackTrace();
-        }
+        instance.start();
+        ltbinstance.start();
     }
 
 }

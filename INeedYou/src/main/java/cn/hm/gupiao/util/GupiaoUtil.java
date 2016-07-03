@@ -10,8 +10,6 @@ import java.util.List;
  */
 public class GupiaoUtil {
 
-    private double[] ema = new double[100];
-
 
     public static double ema(double[] arr, int e) {
         return ema(arr, 0, e);
@@ -56,8 +54,6 @@ public class GupiaoUtil {
             deaArr[i] = bema12 - bema26;
         }
         double dea = ema(deaArr, mid);
-        System.out.println(Arrays.toString(arr));
-        System.out.println(Arrays.toString(deaArr));
         System.out.print("dif:" + dif + "\t dea:" + dea + "\t macd:");
         return 2 * (dif - dea);
     }
@@ -136,6 +132,5 @@ public class GupiaoUtil {
         double xxx1 = ema(new double[]{1, 2, 3, 4}, 4);
         double pp = ema(new double[]{28.22, 28.22, 28.22, 28.11, 28.10, 28.11, 28.06}, 0, 5);
         System.out.print(pp);
-
     }
 }

@@ -1,4 +1,4 @@
-package cn.hm.gupiao.analysis.index;
+package cn.hm.gupiao.snatch.analysis.index;
 
 import java.util.List;
 import java.util.Map;

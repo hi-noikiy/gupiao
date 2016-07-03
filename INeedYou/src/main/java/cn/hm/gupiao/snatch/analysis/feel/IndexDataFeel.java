@@ -1,6 +1,5 @@
-package cn.hm.gupiao.analysis.feel;
+package cn.hm.gupiao.snatch.analysis.feel;
 
-import java.math.BigDecimal;
 import java.util.Map;
 
 /**

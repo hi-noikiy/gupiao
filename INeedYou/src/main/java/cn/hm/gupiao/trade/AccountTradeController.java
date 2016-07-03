@@ -1,4 +1,4 @@
-package cn.hm.gupiao.controller;
+package cn.hm.gupiao.trade;
 
 import cn.hm.gupiao.account.AccountInterface;
 import cn.hm.gupiao.account.SimpleAccountImpl;

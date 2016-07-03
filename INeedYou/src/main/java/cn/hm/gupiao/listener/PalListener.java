@@ -32,8 +32,8 @@ public class PalListener implements ServletContextListener {
     public void contextInitialized(ServletContextEvent sce) {
         PrivateConfig.NOWPATH = sce.getServletContext().getRealPath("/WEB-INF/classes");
         // 完成WebSocket对交易记录的日志监听.
-        new ChbtcSnatchServiceImpl().sync();
-        // new OkCoinSnatchServiceImpl().sync();
+        // new ChbtcSnatchServiceImpl().sync();
+        new OkCoinSnatchServiceImpl(10000).sync();
     }
 
 }

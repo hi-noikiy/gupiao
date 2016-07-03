@@ -12,37 +12,37 @@ import java.math.BigDecimal;
 public class SimpleOrder implements OrderInterface {
     @Override
     public boolean sell(TransactionRecord transactionRecord) {
-        Double aDouble = SimpleAccountImpl.account.getFree().get(transactionRecord.getGoodType());
-        BigDecimal money = BigDecimal.valueOf(transactionRecord.getAmount()).multiply(BigDecimal.valueOf(transactionRecord.getPrice()));
-        BigDecimal amount = BigDecimal.valueOf(transactionRecord.getAmount());
+        Double money = transactionRecord.getAmount() * transactionRecord.getPrice();
+        Double amount = transactionRecord.getAmount();
         Double cnyDouble = SimpleAccountImpl.account.getFree().get(DictUtil.GOODSTYPE_CNY);
-        Double ytbDouble = SimpleAccountImpl.account.getFree().get(DictUtil.GOODSTYPE_YTB);
-        if (aDouble == null) {
-            SimpleAccountImpl.account.getFree().put(transactionRecord.getGoodType(), BigDecimal.valueOf(0).subtract(amount).setScale(2, BigDecimal.ROUND_CEILING).doubleValue());
-            SimpleAccountImpl.account.getFree().put(DictUtil.GOODSTYPE_CNY, BigDecimal.valueOf(0).add(money).setScale(2, BigDecimal.ROUND_CEILING).doubleValue());
-        } else {
-            SimpleAccountImpl.account.getFree().put(transactionRecord.getGoodType(), BigDecimal.valueOf(ytbDouble).subtract(amount).setScale(2, BigDecimal.ROUND_CEILING).doubleValue());
-            SimpleAccountImpl.account.getFree().put(DictUtil.GOODSTYPE_CNY, BigDecimal.valueOf(cnyDouble).add(money).setScale(2, BigDecimal.ROUND_CEILING).doubleValue());
+        Double ytbDouble = SimpleAccountImpl.account.getFree().get(transactionRecord.getGoodType());
+        if (cnyDouble == null) {
+            cnyDouble = new Double(0);
         }
+
+        if (ytbDouble == null) {
+            ytbDouble = new Double(0);
+        }
+        SimpleAccountImpl.account.getFree().put(transactionRecord.getGoodType(), ytbDouble - amount).doubleValue();
+        SimpleAccountImpl.account.getFree().put(DictUtil.GOODSTYPE_CNY, cnyDouble + money);
         return true;
     }
 
     @Override
     public boolean buy(TransactionRecord transactionRecord) {
-        Double aDouble = SimpleAccountImpl.account.getFree().get(transactionRecord.getGoodType());
-        BigDecimal money = BigDecimal.valueOf(transactionRecord.getAmount()).multiply(BigDecimal.valueOf(transactionRecord.getPrice()));
-        BigDecimal amount = BigDecimal.valueOf(transactionRecord.getAmount());
-
+        Double money = transactionRecord.getAmount() * transactionRecord.getPrice();
+        Double amount = transactionRecord.getAmount();
         Double cnyDouble = SimpleAccountImpl.account.getFree().get(DictUtil.GOODSTYPE_CNY);
-        Double ytbDouble = SimpleAccountImpl.account.getFree().get(DictUtil.GOODSTYPE_YTB);
-
-        if (aDouble == null) {
-            SimpleAccountImpl.account.getFree().put(transactionRecord.getGoodType(), BigDecimal.valueOf(0).subtract(money).setScale(2, BigDecimal.ROUND_CEILING).doubleValue());
-            SimpleAccountImpl.account.getFree().put(transactionRecord.getGoodType(), BigDecimal.valueOf(0).add(amount).setScale(2, BigDecimal.ROUND_CEILING).doubleValue());
-        } else {
-            SimpleAccountImpl.account.getFree().put(DictUtil.GOODSTYPE_CNY, BigDecimal.valueOf(cnyDouble).subtract(money).setScale(2, BigDecimal.ROUND_CEILING).doubleValue());
-            SimpleAccountImpl.account.getFree().put(DictUtil.GOODSTYPE_YTB, BigDecimal.valueOf(ytbDouble).add(amount).setScale(2, BigDecimal.ROUND_CEILING).doubleValue());
+        Double ytbDouble = SimpleAccountImpl.account.getFree().get(transactionRecord.getGoodType());
+        if (cnyDouble == null) {
+            cnyDouble = new Double(0);
         }
+
+        if (ytbDouble == null) {
+            ytbDouble = new Double(0);
+        }
+        SimpleAccountImpl.account.getFree().put(DictUtil.GOODSTYPE_CNY, cnyDouble - money);
+        SimpleAccountImpl.account.getFree().put(transactionRecord.getGoodType(), ytbDouble + amount);
         return true;
     }
 }

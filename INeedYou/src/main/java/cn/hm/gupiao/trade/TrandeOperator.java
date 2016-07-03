@@ -1,7 +1,6 @@
 package cn.hm.gupiao.trade;
 
 import cn.hm.gupiao.config.DictUtil;
-import cn.hm.gupiao.controller.AccountTradeController;
 import cn.hm.gupiao.domain.TransactionRecord;
 
 import java.math.BigDecimal;
@@ -13,6 +12,7 @@ public class TrandeOperator {
 
     private OrderInterface orderInterface;
     private AccountTradeController accountManager;
+    private boolean isBuy = true;
 
     public TrandeOperator(AccountTradeController accountManager, OrderInterface orderInterface) {
         this.accountManager = accountManager;
@@ -29,6 +29,11 @@ public class TrandeOperator {
         if (record == null)
             return false;
 
+        if (!isBuy) {
+            return false;
+        }
+        isBuy = !isBuy;
+
         /** 第一步，余额验证. */
         BigDecimal money = BigDecimal.valueOf(record.getAmount()).subtract(BigDecimal.valueOf(record.getPrice())).setScale(2, BigDecimal.ROUND_CEILING);
         Double aDouble = accountManager.getFree(DictUtil.GOODSTYPE_CNY);
@@ -44,6 +49,7 @@ public class TrandeOperator {
         if (!isSuccess) {
             return false;
         }
+        System.out.println(record);
 
         /** 第四步，更新账户信息. */
         accountManager.updateAccount();
@@ -54,6 +60,11 @@ public class TrandeOperator {
     public boolean sell(TransactionRecord record) {
         if (record == null)
             return false;
+
+        if (isBuy) {
+            return false;
+        }
+        isBuy = !isBuy;
 
         /** 第一步，余额验证. */
         BigDecimal money = BigDecimal.valueOf(record.getAmount()).subtract(BigDecimal.valueOf(record.getPrice())).setScale(2, BigDecimal.ROUND_CEILING);
@@ -70,6 +81,7 @@ public class TrandeOperator {
         if (!isSuccess) {
             return false;
         }
+        System.out.println(record);
 
         /** 第四步，更新账户信息. */
         accountManager.updateAccount();

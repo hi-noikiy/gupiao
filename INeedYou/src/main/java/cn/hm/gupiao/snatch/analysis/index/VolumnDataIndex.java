@@ -1,4 +1,4 @@
-package cn.hm.gupiao.analysis.index;
+package cn.hm.gupiao.snatch.analysis.index;
 
 import cn.hm.gupiao.domain.TransactionRecord;
 import cn.hm.gupiao.util.CircleArray;

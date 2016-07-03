@@ -1,4 +1,4 @@
-package cn.hm.gupiao.analysis;
+package cn.hm.gupiao.snatch.analysis;
 
 import cn.hm.gupiao.domain.TransactionRecord;
 import cn.hm.gupiao.push.PushRegisterCenter;

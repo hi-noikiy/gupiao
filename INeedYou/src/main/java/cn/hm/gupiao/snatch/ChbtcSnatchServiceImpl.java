@@ -1,20 +1,15 @@
 package cn.hm.gupiao.snatch;
 
-import cn.hm.gupiao.account.SimpleAccountImpl;
-import cn.hm.gupiao.analysis.VariableIndexAndSecondDataAnalysis;
-import cn.hm.gupiao.analysis.feel.BaseIndexDataFeel;
-import cn.hm.gupiao.analysis.feel.ICanBuyDataFeel;
-import cn.hm.gupiao.analysis.index.BaseDataIndex;
-import cn.hm.gupiao.analysis.index.MACDDataIndex;
-import cn.hm.gupiao.analysis.index.VolumnDataIndex;
-import cn.hm.gupiao.client.ChbtcClient;
+import cn.hm.gupiao.snatch.analysis.VariableIndexAndSecondDataAnalysis;
+import cn.hm.gupiao.snatch.analysis.feel.BaseIndexDataFeel;
+import cn.hm.gupiao.snatch.analysis.index.BaseDataIndex;
+import cn.hm.gupiao.snatch.analysis.index.MACDDataIndex;
+import cn.hm.gupiao.snatch.analysis.index.VolumnDataIndex;
+import cn.hm.gupiao.snatch.client.ChbtcClient;
 import cn.hm.gupiao.config.DictUtil;
-import cn.hm.gupiao.controller.AccountTradeController;
 import cn.hm.gupiao.domain.Account;
 import cn.hm.gupiao.push.PushRegisterCenter;
 import cn.hm.gupiao.push.repository.PushDataRepository;
-import cn.hm.gupiao.trade.SimpleOrder;
-import cn.hm.gupiao.trade.TrandeOperator;
 
 import javax.websocket.*;
 import java.io.IOException;
@@ -25,7 +20,12 @@ public class ChbtcSnatchServiceImpl implements SnatchService {
 
     private String uri = "wss://kline.chbtc.com/websocket";
     private PushRegisterCenter center = new PushRegisterCenter();
-    private VariableIndexAndSecondDataAnalysis analysis = new VariableIndexAndSecondDataAnalysis(60000);
+    private VariableIndexAndSecondDataAnalysis analysis;
+
+    public ChbtcSnatchServiceImpl(int mill) {
+        analysis = new VariableIndexAndSecondDataAnalysis(mill);
+    }
+
 
     @Override
     public void sync() {

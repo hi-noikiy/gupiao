@@ -1,7 +1,7 @@
-package cn.hm.gupiao.analysis.feel;
+package cn.hm.gupiao.snatch.analysis.feel;
 
-import cn.hm.gupiao.analysis.index.BaseDataIndex;
-import cn.hm.gupiao.analysis.index.VolumnDataIndex;
+import cn.hm.gupiao.snatch.analysis.index.BaseDataIndex;
+import cn.hm.gupiao.snatch.analysis.index.VolumnDataIndex;
 import cn.hm.gupiao.config.DictUtil;
 import cn.hm.gupiao.util.SayUtil;
 

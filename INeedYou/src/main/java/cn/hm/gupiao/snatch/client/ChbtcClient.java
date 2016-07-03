@@ -1,4 +1,4 @@
-package cn.hm.gupiao.client;
+package cn.hm.gupiao.snatch.client;
 
 import cn.hm.gupiao.config.DictUtil;
 import cn.hm.gupiao.domain.ClientRecord;

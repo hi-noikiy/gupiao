@@ -1,4 +1,4 @@
-package cn.hm.gupiao.analysis.index;
+package cn.hm.gupiao.snatch.analysis.index;
 
 import cn.hm.gupiao.domain.TransactionRecord;
 import cn.hm.gupiao.util.CircleArray;
@@ -63,7 +63,7 @@ public class BaseDataIndex implements DataIndex {
         Map<String, Double> beforeIndexData5 = historyIndexData.getBefore(5);
         Map<String, Double> beforeIndexData30 = historyIndexData.getBefore(30);
 
-        if (beforeIndexData.size() == 0) {
+        if (beforeIndexData == null || beforeIndexData.size() == 0) {
             return null;
         }
 

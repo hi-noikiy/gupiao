@@ -1,7 +1,7 @@
-package cn.hm.gupiao.analysis;
+package cn.hm.gupiao.snatch.analysis;
 
-import cn.hm.gupiao.analysis.feel.IndexDataFeel;
-import cn.hm.gupiao.analysis.index.DataIndex;
+import cn.hm.gupiao.snatch.analysis.feel.IndexDataFeel;
+import cn.hm.gupiao.snatch.analysis.index.DataIndex;
 import cn.hm.gupiao.domain.TransactionRecord;
 import cn.hm.gupiao.util.CircleArray;
 
@@ -127,7 +127,6 @@ public class VariableIndexAndSecondDataAnalysis extends BaseDataAnalysis {
         public void run() {
             ArrayList<TransactionRecord> nowRecordList = VariableIndexAndSecondDataAnalysis.this.tempList;
             tempList = new ArrayList<>(300);
-
             // 分析器，记录本身分析时间.
             Map<String, Double> anaIndexMap = new HashMap<>();
             for (DataIndex dataIndex : analysisListCache) {
