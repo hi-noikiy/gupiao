@@ -54,8 +54,9 @@ public class GupiaoUtil {
             deaArr[i] = bema12 - bema26;
         }
         double dea = ema(deaArr, mid);
-        System.out.print("dif:" + dif + "\t dea:" + dea + "\t macd:");
-        return 2 * (dif - dea);
+        double macd = 2 * (dif - dea);
+        System.out.println(String.format("dif:%.2f\t\tdea:%.2f\t\tmacd:%.2f\t\tem7:%.2f\t\tema12:%.2f\t\tema26:%.2f\t\tema30:%.2f", dif, dea, macd, ema(arr, 7), ema12, ema26, ema(arr, 30)));
+        return macd;
     }
 
     /**
@@ -92,6 +93,7 @@ public class GupiaoUtil {
         Double dif = 0.0;
         Double dea = 0.0;
 
+
         for (int i = list.size() - 1; i >= 0; i--) {
             List<Double> sublist = list.subList(0, list.size() - i);
             shortEMA = getEXPMA(sublist, shortPeriod);
@@ -100,6 +102,7 @@ public class GupiaoUtil {
             diffList.add(dif);
         }
         dea = getEXPMA(diffList, midPeriod);
+        dif = diffList.get(0);
         macdData.put("DIF", dif);
         macdData.put("DEA", dea);
         macdData.put("MACD", (dif - dea) * 2);

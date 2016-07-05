@@ -49,7 +49,7 @@ public class CircleArray<T> implements Collection<T> {
 
     @Override
     public Iterator<T> iterator() {
-        return new Ltc();
+        return new Ltc(element, start_index, nowSize);
     }
 
     @Override
@@ -134,27 +134,34 @@ public class CircleArray<T> implements Collection<T> {
     }
 
     private class Ltc implements Iterator<T> {
-        private int innertIndex;
-        private int endIndex;
+        private int innertIndex = 0;
+        private int endIndex = 0;
+        private Object[] element;
 
-        public Ltc() {
+        public Ltc(Object[] element, int start_index, int nowSize) {
+            this.element = element;
             if (capSize == nowSize) {
-                innertIndex = start_index;
-                endIndex = start_index + nowSize;
+                if (start_index == 0) {
+                    innertIndex = capSize - 1;
+                    endIndex = 0;
+                } else {
+                    innertIndex = start_index + capSize - 1;
+                    endIndex = start_index;
+                }
             } else {
-                innertIndex = 0;
-                endIndex = nowSize;
+                innertIndex = nowSize - 1;
+                endIndex = 0;
             }
         }
 
         @Override
         public boolean hasNext() {
-            return innertIndex != -1 && (innertIndex < endIndex);
+            return innertIndex != -1 && (innertIndex >= endIndex);
         }
 
         @Override
         public T next() {
-            return (T) element[innertIndex++ % capSize];
+            return (T) element[innertIndex-- % capSize];
         }
     }
 

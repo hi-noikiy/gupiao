@@ -27,7 +27,7 @@ public class RealtimePushDataRepository<T> extends PushDataRepository<T> {
                     for (PushInterface<T> inf : list) {
                         inf.push(obj);
                     }
-                } catch (InterruptedException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }

@@ -71,7 +71,6 @@ public class MACDDataIndex implements DataIndex {
         }
 
         macd = GupiaoUtil.macd(list, st, lg, mid);
-        System.out.println(macd);
         Double beforeMacd = null;
 
         Map<String, Double> beforeMap = historyIndexData.getBefore();
