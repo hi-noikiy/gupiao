@@ -26,6 +26,7 @@ public class GupiaoUtil {
             result = (f * v + p * result);
         }
 
+
         /*
         // 递归解法
         if (e == 1) {
@@ -40,6 +41,30 @@ public class GupiaoUtil {
         */
         return result;
     }
+
+    public static double sma(double[] arr, int start, int e, double m) {
+        // 循环解法.
+        double result = 0;
+        for (int i = 0; i < e; i++) {
+            double v = arr[start + e - i - 1];
+            double ed = i + 1;
+            double f = m / (ed + 1.0);
+            double p = (ed - 1.0) / (ed + 1.0);
+            result = (f * v + p * result);
+        }
+        return result;
+    }
+
+    public static double dma(double[] arr, int start, double m) {
+        // 循环解法.
+        double result = 0;
+        for (int i = 0; i < arr.length; i++) {
+            double v = arr[start + arr.length - i - 1];
+            result = (m * v + (1 - m) * result);
+        }
+        return result;
+    }
+
 
     public static double macd(double[] arr, int st, int lg, int mid) {
         double ema12 = ema(arr, st);
@@ -57,6 +82,27 @@ public class GupiaoUtil {
         double macd = 2 * (dif - dea);
         System.out.println(String.format("dif:%.2f\t\tdea:%.2f\t\tmacd:%.2f\t\tem7:%.2f\t\tema12:%.2f\t\tema26:%.2f\t\tema30:%.2f", dif, dea, macd, ema(arr, 7), ema12, ema26, ema(arr, 30)));
         return macd;
+    }
+
+    public static void rsi(double[] arr, int d) {
+        double tsum = 0;
+        double fsum = 0;
+        double lastprice = arr[0];
+        for (int i = 1; i <= d; i++) {
+            sma(arr, 0, i, 1);
+            double c = lastprice - arr[i];
+            if (c > 0) {
+                tsum += c;
+            } else {
+                fsum += c;
+            }
+        }
+        double rsi = tsum / (tsum - fsum) * 100;
+        System.out.print(String.format("RSI(%d):%.2f\t", d, rsi));
+    }
+
+    public static void kdj(double[] arr, int d) {
+
     }
 
     /**

@@ -70,6 +70,9 @@ public class MACDDataIndex implements DataIndex {
             index++;
         }
 
+        GupiaoUtil.rsi(list, 6);
+        GupiaoUtil.rsi(list, 12);
+        GupiaoUtil.rsi(list, 24);
         macd = GupiaoUtil.macd(list, st, lg, mid);
         Double beforeMacd = null;
 
