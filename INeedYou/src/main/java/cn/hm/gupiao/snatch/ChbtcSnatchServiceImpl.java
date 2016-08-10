@@ -7,7 +7,7 @@ import cn.hm.gupiao.snatch.analysis.index.MACDDataIndex;
 import cn.hm.gupiao.snatch.analysis.index.VolumnDataIndex;
 import cn.hm.gupiao.snatch.client.ChbtcClient;
 import cn.hm.gupiao.config.DictUtil;
-import cn.hm.gupiao.domain.Account;
+import cn.hm.gupiao.account.domain.Account;
 import cn.hm.gupiao.push.PushRegisterCenter;
 import cn.hm.gupiao.push.repository.PushDataRepository;
 

@@ -10,7 +10,7 @@ import cn.hm.gupiao.snatch.analysis.index.VolumnDataIndex;
 import cn.hm.gupiao.snatch.client.OkCoinClient;
 import cn.hm.gupiao.config.DictUtil;
 import cn.hm.gupiao.trade.AccountTradeController;
-import cn.hm.gupiao.domain.Account;
+import cn.hm.gupiao.account.domain.Account;
 import cn.hm.gupiao.push.repository.PushDataRepository;
 import cn.hm.gupiao.trade.SimpleOrder;
 import cn.hm.gupiao.trade.TrandeOperator;

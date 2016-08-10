@@ -85,19 +85,20 @@ public class GupiaoUtil {
     }
 
     public static void rsi(double[] arr, int d) {
-        double tsum = 0;
-        double fsum = 0;
+        double[] tarr = new double[arr.length - 1];
+        double[] farr = new double[arr.length - 1];
+        double rsi = 0;
         double lastprice = arr[0];
-        for (int i = 1; i <= d; i++) {
-            sma(arr, 0, i, 1);
+        for (int i = 1; i < arr.length; i++) {
             double c = lastprice - arr[i];
             if (c > 0) {
-                tsum += c;
-            } else {
-                fsum += c;
+                tarr[i - 1] = c;
             }
+            farr[i - 1] = Math.abs(c);
         }
-        double rsi = tsum / (tsum - fsum) * 100;
+        rsi = sma(tarr, 0, d, 1) / sma(farr, 0, d, 1);
+        rsi = rsi * 100.0;
+
         System.out.print(String.format("RSI(%d):%.2f\t", d, rsi));
     }
 

@@ -1,6 +1,6 @@
 package cn.hm.gupiao.account;
 
-import cn.hm.gupiao.domain.Account;
+import cn.hm.gupiao.account.domain.Account;
 
 /**
  * Created by huangming on 2016/6/26.
@@ -8,10 +8,33 @@ import cn.hm.gupiao.domain.Account;
 public class SimpleAccountImpl implements AccountInterface {
 
     public static Account account = new Account();
+    private double money = 0;
+    private double bmoney = 0;
 
     @Override
-    public void update(Account account) {
-        account.setFree(this.account.getFree());
+    public void init() {
+        money = 0;
     }
 
+    @Override
+    public void add(double mn) {
+        money += mn;
+    }
+
+    @Override
+    public void sub(double mn) {
+        money -= mn;
+    }
+
+    @Override
+    public void borrow(double mn) {
+        money += mn;
+        bmoney += mn;
+    }
+
+    @Override
+    public void repay(double mn) {
+        money -= mn;
+        bmoney -= mn;
+    }
 }
