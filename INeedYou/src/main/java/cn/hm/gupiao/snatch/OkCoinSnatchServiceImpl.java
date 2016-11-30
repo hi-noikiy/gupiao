@@ -59,8 +59,8 @@ public class OkCoinSnatchServiceImpl implements SnatchService {
 
         /** 配置指标. */
         analysis.registerIndex(new BaseDataIndex());
-        analysis.registerIndex(new VolumnDataIndex());
-        analysis.registerIndex(new MACDDataIndex());
+        analysis.registerIndex(new VolumnDataIndex());analysis.registerIndex(new MACDDataIndex());
+
 
         /** 配置感知. */
         analysis.registerFeel(new BaseIndexDataFeel(DictUtil.GOODSTYPE_YTB, DictUtil.PALTYPE_BTC));

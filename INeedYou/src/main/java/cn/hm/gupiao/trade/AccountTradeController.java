@@ -26,6 +26,12 @@ public class AccountTradeController {
     }
 
     public void updateAccount() {
+        /*
+        长春桥宝蓝世纪大厦E座10楼左边
+        9:30 - 18:00
+        老板、老板大外甥
+        生锈的菜刀
+       * */
     }
 
 }

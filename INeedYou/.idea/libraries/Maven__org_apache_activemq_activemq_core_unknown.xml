@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: org.apache.activemq:activemq-core:unknown">
+    <CLASSES>
+      <root url="jar://D:/developer/maven/repository/org/apache/activemq/activemq-core/unknown/activemq-core-unknown.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://D:/developer/maven/repository/org/apache/activemq/activemq-core/unknown/activemq-core-unknown-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://D:/developer/maven/repository/org/apache/activemq/activemq-core/unknown/activemq-core-unknown-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
