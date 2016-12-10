@@ -1,6 +1,7 @@
-package cn.hm.gupiao.account;
+package cn.hm.gupiao.account.impl;
 
-import cn.hm.gupiao.account.domain.Account;
+import cn.hm.gupiao.account.AccountInterface;
+import cn.hm.gupiao.domain.Account;
 
 /**
  * Created by huangming on 2016/6/26.

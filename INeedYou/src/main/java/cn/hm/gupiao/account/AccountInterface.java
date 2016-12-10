@@ -1,7 +1,5 @@
 package cn.hm.gupiao.account;
 
-import cn.hm.gupiao.account.domain.Account;
-
 /**
  * 账户操作。
  * <p>

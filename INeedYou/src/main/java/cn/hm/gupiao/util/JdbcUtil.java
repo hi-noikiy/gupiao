@@ -13,6 +13,7 @@ import java.util.ArrayList;
  *
  * @author huangming
  */
+@Deprecated
 public class JdbcUtil {
 
     /**

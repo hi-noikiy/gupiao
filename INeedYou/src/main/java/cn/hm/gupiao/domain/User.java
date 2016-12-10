@@ -1,4 +1,4 @@
-package cn.hm.gupiao.account.domain;
+package cn.hm.gupiao.domain;
 
 public class User {
 

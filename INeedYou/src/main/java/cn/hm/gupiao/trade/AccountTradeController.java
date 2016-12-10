@@ -2,7 +2,7 @@ package cn.hm.gupiao.trade;
 
 import cn.hm.gupiao.account.AccountInterface;
 import cn.hm.gupiao.account.SimpleAccountImpl;
-import cn.hm.gupiao.account.domain.Account;
+import cn.hm.gupiao.domain.Account;
 
 /**
  * 账户管理.

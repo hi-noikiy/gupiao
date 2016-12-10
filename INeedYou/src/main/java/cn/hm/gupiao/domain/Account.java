@@ -1,4 +1,4 @@
-package cn.hm.gupiao.account.domain;
+package cn.hm.gupiao.domain;
 
 import java.io.Serializable;
 import java.util.HashMap;

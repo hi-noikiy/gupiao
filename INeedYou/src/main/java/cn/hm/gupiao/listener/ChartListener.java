@@ -88,8 +88,6 @@ public class ChartListener implements ServletContextListener {
 			List<TransactionRecord> detail = service.getDetail(now);
 			String detailStr = JSONArray.toJSONString(detail);
 
-			
-
 			Double priceRecord = service.getAvgPriceRecord(now);
 			String avgpriceStr = "{date:" + now.getTime() + ",value:" + priceRecord + "}";
 
